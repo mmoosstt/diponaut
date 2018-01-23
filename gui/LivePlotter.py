@@ -4,6 +4,7 @@ import faulthandler
 faulthandler.enable()
 import logic.DataApi
 import scipy
+import numpy as np
 
 
 class TraidingWidget(PySide.QtGui.QWidget):
@@ -21,7 +22,12 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.setLayout(self.layout)
         self.qtimer = PySide.QtCore.QTimer()
         self.qtimer.timeout.connect(self.updateTrades)
-        self.qtimer.start(5000)
+        self.qtimer.start(1000)
+        self.qtimer.setSingleShot(True)
+
+        self.qtimer_update_xachses = PySide.QtCore.QTimer()
+        self.qtimer_update_xachses.setSingleShot(True)
+        self.qtimer_update_xachses.timeout.connect(self.timeout_sync_x_aches)
 
     def updateTrades(self):
         self.data.update_ring()
@@ -38,32 +44,28 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.plotWidgets["plot1"] = {}
         self.plotWidgets["plot1"]["widget"] = pyqtgraph.PlotWidget(self)
         self.plotWidgets["plot1"]["curves"] = {}
-        self.plotWidgets["plot1"]["curves"]["ring_value_mean_quantity"] = {}
-        self.plotWidgets["plot1"]["curves"]["ring_value_mean_quantity"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
-        self.plotWidgets["plot1"]["curves"]["ring_value_mean_quantity"]["x"] = self.data.ring_trades_time
-        self.plotWidgets["plot1"]["curves"]["ring_value_mean_quantity"]["y"] = self.data.ring_value_mean_quantity
+        self.plotWidgets["plot1"]["curves"]["value_mean"] = {}
+        self.plotWidgets["plot1"]["curves"]["value_mean"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
+        self.plotWidgets["plot1"]["curves"]["value_mean"]["x"] = self.data.ring_trades_time
+        self.plotWidgets["plot1"]["curves"]["value_mean"]["y"] = self.data.ring_value_mean_quantity
 
-        self.plotWidgets["plot1"]["curves"]["ring_value_max"] = {}
-        self.plotWidgets["plot1"]["curves"]["ring_value_max"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
-        self.plotWidgets["plot1"]["curves"]["ring_value_max"]["x"] = self.data_prediction.trades_time
-        self.plotWidgets["plot1"]["curves"]["ring_value_max"]["y"] = self.data_prediction.trades_median
+        self.plotWidgets["plot1"]["curves"]["value_flit1"] = {}
+        self.plotWidgets["plot1"]["curves"]["value_flit1"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
+        self.plotWidgets["plot1"]["curves"]["value_flit1"]["x"] = self.data_prediction.trades_time
+        self.plotWidgets["plot1"]["curves"]["value_flit1"]["y"] = self.data_prediction.trades_filt1
 
-
-#         self.plotWidgets["plot1"]["curves"]["ring_value_min"] = {}
-#         self.plotWidgets["plot1"]["curves"]["ring_value_min"][
-#             "widget"] = self.plotWidgets["plot1"]["widget"].plot()
-#         self.plotWidgets["plot1"]["curves"]["ring_value_min"][
-#             "x"] = self.data.ring_trades_time
-#         self.plotWidgets["plot1"]["curves"][
-#             "ring_value_min"]["y"] = self.data.ring_value_min
+        self.plotWidgets["plot1"]["curves"]["value_filt2"] = {}
+        self.plotWidgets["plot1"]["curves"]["value_filt2"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
+        self.plotWidgets["plot1"]["curves"]["value_filt2"]["x"] = self.data_prediction.trades_time
+        self.plotWidgets["plot1"]["curves"]["value_filt2"]["y"] = self.data_prediction.trades_filt2
 
         self.plotWidgets["plot2"] = {}
         self.plotWidgets["plot2"]["widget"] = pyqtgraph.PlotWidget(self)
         self.plotWidgets["plot2"]["curves"] = {}
-        self.plotWidgets["plot2"]["curves"]["ring_quantity"] = {}
-        self.plotWidgets["plot2"]["curves"]["ring_quantity"]["widget"] = self.plotWidgets["plot2"]["widget"].plot()
-        self.plotWidgets["plot2"]["curves"]["ring_quantity"]["x"] = self.data_prediction.trades_time
-        self.plotWidgets["plot2"]["curves"]["ring_quantity"]["y"] = self.data_prediction.trades_err
+        self.plotWidgets["plot2"]["curves"]["filt1-filt2"] = {}
+        self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["widget"] = self.plotWidgets["plot2"]["widget"].plot()
+        self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["x"] = self.data_prediction.trades_time
+        self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["y"] = self.data_prediction.trades_err
 
         self.plotWidgets["plot2"]["curves"]["trades_ana1"] = {}
         self.plotWidgets["plot2"]["curves"]["trades_ana1"]["widget"] = self.plotWidgets["plot2"]["widget"].plot()
@@ -84,32 +86,39 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.plotWidgets["plot3"] = {}
         self.plotWidgets["plot3"]["widget"] = pyqtgraph.PlotWidget(self)
         self.plotWidgets["plot3"]["curves"] = {}
-        self.plotWidgets["plot3"]["curves"]["ring_nr_trades"] = {}
-        self.plotWidgets["plot3"]["curves"]["ring_nr_trades"]["widget"] = self.plotWidgets["plot3"]["widget"].plot()
-        self.plotWidgets["plot3"]["curves"]["ring_nr_trades"]["x"] = self.data.ring_trades_time
-        self.plotWidgets["plot3"]["curves"]["ring_nr_trades"]["y"] = self.data.ring_trades_count
+        self.plotWidgets["plot3"]["curves"]["ring_trades_count"] = {}
+        self.plotWidgets["plot3"]["curves"]["ring_trades_count"]["widget"] = self.plotWidgets["plot3"]["widget"].plot()
+        self.plotWidgets["plot3"]["curves"]["ring_trades_count"]["x"] = self.data.ring_trades_time
+        self.plotWidgets["plot3"]["curves"]["ring_trades_count"]["y"] = self.data.ring_trades_count
 
         for _plot_key in sorted(self.plotWidgets.keys()):
             self.layout.addWidget(self.plotWidgets[_plot_key]["widget"])
-            self.plotWidgets[_plot_key]["widget"].sigRangeChanged.connect(self.sync_x_aches)
+            self.plotWidgets[_plot_key]["widget"].sigRangeChanged.connect(self.event_sync_x_aches)
+            _legend = self.plotWidgets[_plot_key]["widget"].addLegend()
 
-    def sync_x_aches(self, widget, cords):
+            for _curve_key in sorted(self.plotWidgets[_plot_key]["curves"]):
+                _legend.addItem(self.plotWidgets[_plot_key]["curves"][_curve_key]["widget"], name=_curve_key)
+
+    def event_sync_x_aches(self, widget, cords):
+        self._store_cords = cords
+        self.qtimer_update_xachses.start(100)
+
+    def timeout_sync_x_aches(self):
         for _plot_key in sorted(self.plotWidgets.keys()):
             _widget = self.plotWidgets[_plot_key]["widget"]
-            _widget.sigRangeChanged.disconnect(self.sync_x_aches)
+            _widget.sigRangeChanged.disconnect(self.event_sync_x_aches)
 
         for _plot_key in sorted(self.plotWidgets.keys()):
             _widget = self.plotWidgets[_plot_key]["widget"]
-            if id(widget) != id(_widget):
-                _widget.setXRange(cords[0][0], cords[0][1])
+            _widget.setXRange(self._store_cords[0][0], self._store_cords[0][1])
 
         for _plot_key in sorted(self.plotWidgets.keys()):
             _widget = self.plotWidgets[_plot_key]["widget"]
-            _widget.sigRangeChanged.connect(self.sync_x_aches)
+            _widget.sigRangeChanged.connect(self.event_sync_x_aches)
 
     def drawPlots(self):
 
-        for _plot_key in self.plotWidgets.keys():
+        for _plot_key in sorted(self.plotWidgets.keys()):
             _plotWidget = self.plotWidgets[_plot_key]['widget']
 
             _xMin = -1e10
@@ -117,9 +126,8 @@ class TraidingWidget(PySide.QtGui.QWidget):
             _yMin = -1e10
             _yMax = 1e10
 
-            for _curve_key in self.plotWidgets[_plot_key]["curves"].keys():
-                _curveWidget = self.plotWidgets[_plot_key][
-                    'curves'][_curve_key]["widget"]
+            for _curve_key in sorted(self.plotWidgets[_plot_key]["curves"].keys()):
+                _curveWidget = self.plotWidgets[_plot_key]['curves'][_curve_key]["widget"]
                 _x = self.plotWidgets[_plot_key]['curves'][_curve_key]["x"]
                 _y = self.plotWidgets[_plot_key]['curves'][_curve_key]["y"]
 
@@ -140,11 +148,8 @@ class TraidingWidget(PySide.QtGui.QWidget):
                 self.color_cnt += 0xF
 
             #_plotWidget.setXRange(min(_x), max(_x))
+            #_plotWidget.setYRange(min(_not_null), max(_not_null))
 
-            _not_null = _y[scipy.where((_y > 1e-10))]
-
-            if len(_not_null) > 0:
-                _plotWidget.setYRange(min(_not_null), max(_not_null))
             self.color_cnt = 1
 
 # Start Qt event loop unless running in interactive mode.
