@@ -43,11 +43,11 @@ class TradesApi(object):
     client = BinanceClient()
 
     @staticmethod
-    def getTradeData(startTime, endTime, symbol='BNBBTC'):
+    def getTradeData(startTime, endTime, symbol='TRXETH'):
 
         try:
             _trades = __class__.client.api.get_aggregate_trades(
-                symbol='BNBBTC', startTime=startTime, endTime=endTime)
+                symbol=symbol, startTime=startTime, endTime=endTime)
         except:
             _trades = []
             traceback.print_exc()
@@ -86,7 +86,7 @@ class TradesApi(object):
             return None
 
     @staticmethod
-    def create_buy_order(symbols='BNBBTC', quantity=100):
+    def create_buy_order(symbols='TRXETH', quantity=100):
 
         _ret = __class__.client.api.create_order(
             symbol=symbols,
@@ -97,7 +97,7 @@ class TradesApi(object):
         print(_ret)
 
     @staticmethod
-    def create_sell_order(symbols="BNBBTC", quantity=100):
+    def create_sell_order(symbols="TRXETH", quantity=100):
 
         _ret = __class__.client.api.create_order(
             symbol=symbols,
@@ -399,7 +399,7 @@ class TradingStates(object):
             self.update_event(self.events_buy_time, True, time_event)
             self.update_event(self.events_buy, True, price)
 
-            TradesApi.create_buy_order(self.symbol, 150)
+            TradesApi.create_buy_order(self.symbol, 500)
 
         elif (self.state == "stro_buy" and
               sell_event == True):
@@ -412,7 +412,7 @@ class TradingStates(object):
             self.update_event(self.events_sell_time, True, time_event)
             self.update_event(self.events_sell, True, price)
 
-            TradesApi.create_sell_order(self.symbol, 150)
+            TradesApi.create_sell_order(self.symbol, 500)
 
         if self.state != self.state_z:
             self.state_z = self.state

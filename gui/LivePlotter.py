@@ -14,7 +14,7 @@ class TraidingWidget(PySide.QtGui.QWidget):
     def __init__(self, parent=None):
         PySide.QtGui.QWidget.__init__(self, parent)
         self.data = logic.DataApi.TradesLogger(time_delta=10, symbol="TRXETH")
-        self.data_prediction = logic.DataApi.TradesPrediction(time_delta=10)
+        self.data_prediction = logic.DataApi.TradesPrediction(time_delta=10, symbol="TRXETH")
 
         self.layout = PySide.QtGui.QVBoxLayout(self)
 
