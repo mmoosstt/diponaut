@@ -85,6 +85,28 @@ class TradesApi(object):
         else:
             return None
 
+    @staticmethod
+    def create_buy_order(symbols='BNBBTC', quantity=100):
+
+        _ret = __class__.client.api.create_order(
+            symbol=symbols,
+            side=Client.SIDE_BUY,
+            type=Client.ORDER_TYPE_MARKET,
+            quantity=quantity)
+
+        print(_ret)
+
+    @staticmethod
+    def create_sell_order(symbols="BNBBTC", quantity=100):
+
+        _ret = __class__.client.api.create_order(
+            symbol=symbols,
+            side=Client.SIDE_SELL,
+            type=Client.ORDER_TYPE_MARKET,
+            quantity=quantity)
+
+        print(_ret)
+
 
 class TradesLogger(object):
 
@@ -302,14 +324,17 @@ class TradesPrediction(object):
 class TradingStates(object):
 
     def __init__(self, symbol="TRXETH", time_delta=10, storages_path="../data"):
+        self.symbol = symbol
         self.state = "start"
         self.state_z = "start"
         self.zc_cnt = 0
         self.ring_size = int(60 * 60 * 24 / time_delta)
         self.events_buy = np.array([np.NaN] * self.ring_size, dtype=np.double)
         self.events_sell = np.array([np.NaN] * self.ring_size, dtype=np.double)
-        self.events_changed = np.array([np.NaN] * self.ring_size, dtype=np.double)
-        self.events_time = np.array([np.NaN] * self.ring_size, dtype=np.double)
+        self.events_zc = np.array([np.NaN] * self.ring_size, dtype=np.double)
+        self.events_buy_time = np.array([np.NaN] * self.ring_size, dtype=np.double)
+        self.events_sell_time = np.array([np.NaN] * self.ring_size, dtype=np.double)
+        self.events_zc_time = np.array([np.NaN] * self.ring_size, dtype=np.double)
 
         self.ring_data_filepath = "{0}/{1}-{2}s-{3}.hdf".format(
             storages_path, symbol, time_delta, "events")
@@ -322,17 +347,21 @@ class TradingStates(object):
     def load_storage(self, file_path):
         _f = h5py.File(file_path, 'r')
         self.events_buy = np.array(_f['events_buy'], dtype=np.double)
+        self.events_buy_time = np.array(_f['events_buy_time'], dtype=np.double)
         self.events_sell = np.array(_f['events_sell'], dtype=np.double)
-        self.events_time = np.array(_f['events_time'], dtype=np.double)
-        self.events_changed = np.array(_f['events_changed'], dtype=np.double)
+        self.events_sell_time = np.array(_f['events_sell_time'], dtype=np.double)
+        self.events_zc = np.array(_f['events_zc'], dtype=np.double)
+        self.events_zc_time = np.array(_f['events_zc_time'], dtype=np.double)
         _f.close()
 
     def save_storage(self, file_path):
         _f = h5py.File(file_path, 'w')
         _f.create_dataset('events_buy', data=self.events_buy)
+        _f.create_dataset('events_buy_time', data=self.events_buy_time)
         _f.create_dataset('events_sell', data=self.events_sell)
-        _f.create_dataset('events_time', data=self.events_time)
-        _f.create_dataset('events_changed', data=self.events_changed)
+        _f.create_dataset('events_sell_time', data=self.events_sell_time)
+        _f.create_dataset('events_zc', data=self.events_zc)
+        _f.create_dataset('events_zc_time', data=self.events_zc_time)
         _f.close()
 
     def update_event(self, events_arr, event, value):
@@ -354,7 +383,8 @@ class TradingStates(object):
         zc_event = False
         if self.zc_cnt >= 3:
             zc_event = True
-
+            self.update_event(self.events_zc_time, True, time_event)
+            self.update_event(self.events_zc, True, price)
         if (
             (self.state == "start" or
              self.state == "stro_sell") and
@@ -366,8 +396,10 @@ class TradingStates(object):
         elif (self.state == "week_buy" and
               zc_event == True):
             self.state = "stro_buy"
-            self.update_event(self.events_time, True, time_event)
+            self.update_event(self.events_buy_time, True, time_event)
             self.update_event(self.events_buy, True, price)
+
+            TradesApi.create_buy_order(self.symbol, 150)
 
         elif (self.state == "stro_buy" and
               sell_event == True):
@@ -377,8 +409,10 @@ class TradingStates(object):
         elif (self.state == "week_sell" and
               zc_event == True):
             self.state = "stro_sell"
-            self.update_event(self.events_time, True, time_event)
+            self.update_event(self.events_sell_time, True, time_event)
             self.update_event(self.events_sell, True, price)
+
+            TradesApi.create_sell_order(self.symbol, 150)
 
         if self.state != self.state_z:
             self.state_z = self.state
@@ -387,9 +421,7 @@ class TradingStates(object):
 
 
 if __name__ == "__main__":
-    fig, (ax1) = plt.subplots(1, sharey=False)
 
-    _logger = TradesLogger(time_delta=10, symbol="TRXETH")
-    _predict = TradesPrediction(time_delta=10)
-    _logger.update_ring()
-    _predict.update(_logger)
+    pass
+
+    # TradesApi.create_sell_order(symbols="TRXETH")

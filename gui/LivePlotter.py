@@ -37,8 +37,9 @@ class TraidingWidget(PySide.QtGui.QWidget):
 
     def createPlotInterface(self):
 
-        def mySetSymbol(w):
-            w.setSymbol(1)
+        def mySetSymbol(w, s):
+            w.setSymbol(s)
+            w.setPen(None)
 
         self.plotWidgets = {}
         self.plotWidgets["plot1"] = {}
@@ -59,6 +60,24 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.plotWidgets["plot1"]["curves"]["value_filt2"]["x"] = self.data_prediction.trades_time
         self.plotWidgets["plot1"]["curves"]["value_filt2"]["y"] = self.data_prediction.trades_filt2
 
+        self.plotWidgets["plot1"]["curves"]["events_buy"] = {}
+        self.plotWidgets["plot1"]["curves"]["events_buy"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
+        self.plotWidgets["plot1"]["curves"]["events_buy"]["x"] = self.data_prediction.states.events_buy_time
+        self.plotWidgets["plot1"]["curves"]["events_buy"]["y"] = self.data_prediction.states.events_buy
+        self.plotWidgets["plot1"]["curves"]["events_buy"]["style"] = lambda w: mySetSymbol(w, 2)
+
+        self.plotWidgets["plot1"]["curves"]["events_sell"] = {}
+        self.plotWidgets["plot1"]["curves"]["events_sell"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
+        self.plotWidgets["plot1"]["curves"]["events_sell"]["x"] = self.data_prediction.states.events_sell_time
+        self.plotWidgets["plot1"]["curves"]["events_sell"]["y"] = self.data_prediction.states.events_sell
+        self.plotWidgets["plot1"]["curves"]["events_sell"]["style"] = lambda w: mySetSymbol(w, 3)
+
+        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"] = {}
+        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
+        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["x"] = self.data_prediction.states.events_zc_time
+        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["y"] = self.data_prediction.states.events_zc
+        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["style"] = lambda w: mySetSymbol(w, 4)
+
         self.plotWidgets["plot2"] = {}
         self.plotWidgets["plot2"]["widget"] = pyqtgraph.PlotWidget(self)
         self.plotWidgets["plot2"]["curves"] = {}
@@ -66,12 +85,6 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["widget"] = self.plotWidgets["plot2"]["widget"].plot()
         self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["x"] = self.data_prediction.trades_time
         self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["y"] = self.data_prediction.trades_err
-
-        self.plotWidgets["plot2"]["curves"]["trades_ana1"] = {}
-        self.plotWidgets["plot2"]["curves"]["trades_ana1"]["widget"] = self.plotWidgets["plot2"]["widget"].plot()
-        self.plotWidgets["plot2"]["curves"]["trades_ana1"]["x"] = self.data_prediction.trades_time
-        self.plotWidgets["plot2"]["curves"]["trades_ana1"]["y"] = self.data_prediction.trades_err_ana
-        self.plotWidgets["plot2"]["curves"]["trades_ana1"]["style"] = lambda w: mySetSymbol(w)
 
         self.plotWidgets["plot2"]["curves"]["trades_buy"] = {}
         self.plotWidgets["plot2"]["curves"]["trades_buy"]["widget"] = self.plotWidgets["plot2"]["widget"].plot()
@@ -143,7 +156,6 @@ class TraidingWidget(PySide.QtGui.QWidget):
                 if "style" in self.plotWidgets[_plot_key]['curves'][_curve_key].keys():
                     _style = self.plotWidgets[_plot_key]['curves'][_curve_key]["style"]
                     _style(_curveWidget)
-                    _curveWidget.setPen(None)
 
                 self.color_cnt += 0xF
 
