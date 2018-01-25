@@ -14,7 +14,7 @@ class BinanceClient(object):
 
     api = None
 
-    def __init__(self, file_path="../data/BinanceApi.hdf5"):
+    def __init__(self, file_path="./data/BinanceApi.hdf5"):
 
         if __class__.api == None:
             _f = h5py.File(file_path, 'r')
@@ -83,6 +83,7 @@ class TradesApi(object):
 
             return data
         else:
+            print('No trades')
             return None
 
     @staticmethod
@@ -110,7 +111,7 @@ class TradesApi(object):
 
 class TradesLogger(object):
 
-    def __init__(self, symbol='TRXETH', time_delta=10, storages_path="../data"):
+    def __init__(self, symbol='TRXETH', time_delta=10, storages_path="./data"):
 
         self.time_delta = time_delta
         self.time_last_update = 0
@@ -204,7 +205,7 @@ class TradesPrediction(object):
 
     Trades = TradesLogger
 
-    def __init__(self,  symbol="TRXETH", time_delta=10, storages_path="../data"):
+    def __init__(self,  symbol="TRXETH", time_delta=10, storages_path="./data"):
         self.states = TradingStates(symbol, time_delta, storages_path)
         self.time_delta = time_delta  # s
         self.ring_size = int(60 * 60 * 24 / time_delta)
@@ -262,8 +263,6 @@ class TradesPrediction(object):
 
         np.copyto(self.trades_raw, _dummy)
 
-        _trades_trigger_factor = 1.0
-
         # predic raising or fallin global tendencies
         b, a = scipy.signal.butter(2, 0.01)
         _trades_filt1 = scipy.signal.filtfilt(b, a, (self.trades_raw, self.trades_time), axis=1)
@@ -288,16 +287,18 @@ class TradesPrediction(object):
         _trades_err_diff_zc_value = _trades_err_diff_zc * self.trades_err[1:-1]
         np.copyto(self.trades_err_diff_zc[2:], _trades_err_diff_zc_value)
 
-        _int = -1 * int(1. * 60 * 60 / self.time_delta)
+        _int = -1 * int(24. * 60 * 60 / self.time_delta)
+
+        _trade_level_sell_factor = 1.873
 
         _trade_level_sell = self.trades_err_diff_zc[scipy.where(self.trades_err_diff_zc > 0)]
-        _trade_level_sell = np.mean(_trade_level_sell[_int:])
+        _trade_level_sell = np.mean(_trade_level_sell) * _trade_level_sell_factor
 
         np.copyto(self.trades_sell[:-1], self.trades_sell[1:])
         self.trades_sell[len(self.trades_sell) - 1] = _trade_level_sell
 
         _trade_level_buy = self.trades_err_diff_zc[scipy.where(self.trades_err_diff_zc < 0)]
-        _trade_level_buy = np.mean(_trade_level_buy[_int:])
+        _trade_level_buy = np.mean(_trade_level_buy) * _trade_level_sell_factor
 
         np.copyto(self.trades_buy[:-1], self.trades_buy[1:])
         self.trades_buy[len(self.trades_buy) - 1] = _trade_level_buy
@@ -311,10 +312,10 @@ class TradesPrediction(object):
 
         self.save_storage(self.ring_data_filepath)
 
-        _event_price = source.ring_value_mean_quantity[source.ring_pos]
+        _event_price = np.mean(self.trades_raw[-6:-1])
         _event_buy = _trades_err[-1:][0] < _trade_level_buy
         _event_sell = _trades_err[-1:][0] > _trade_level_sell
-        _event_zc = True in _trades_err_diff_zc[-10:]
+        _event_zc = True in _trades_err_diff_zc[-20:]
         _event_rising = (self.trades_filt2_diff[-1:][0]) >= 0
         _event_time = self.trades_time[-1:][0]
 
@@ -323,7 +324,7 @@ class TradesPrediction(object):
 
 class TradingStates(object):
 
-    def __init__(self, symbol="TRXETH", time_delta=10, storages_path="../data"):
+    def __init__(self, symbol="TRXETH", time_delta=10, storages_path="./data"):
         self.symbol = symbol
         self.state = "start"
         self.state_z = "start"
@@ -343,6 +344,7 @@ class TradingStates(object):
             self.save_storage(self.ring_data_filepath)
 
         self.load_storage(self.ring_data_filepath)
+        x = 1
 
     def load_storage(self, file_path):
         _f = h5py.File(file_path, 'r')
@@ -385,6 +387,9 @@ class TradingStates(object):
             zc_event = True
             self.update_event(self.events_zc_time, True, time_event)
             self.update_event(self.events_zc, True, price)
+
+            print("zero crossing")
+
         if (
             (self.state == "start" or
              self.state == "stro_sell") and
@@ -422,6 +427,5 @@ class TradingStates(object):
 
 if __name__ == "__main__":
 
+    #TradesApi.create_sell_order("TRXETH", 500)
     pass
-
-    # TradesApi.create_sell_order(symbols="TRXETH")

@@ -22,8 +22,8 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.setLayout(self.layout)
         self.qtimer = PySide.QtCore.QTimer()
         self.qtimer.timeout.connect(self.updateTrades)
-        self.qtimer.start(1000)
-        self.qtimer.setSingleShot(True)
+        self.qtimer.start(10000)
+        # self.qtimer.setSingleShot(True)
 
         self.qtimer_update_xachses = PySide.QtCore.QTimer()
         self.qtimer_update_xachses.setSingleShot(True)
@@ -33,7 +33,7 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.data.update_ring()
         self.data_prediction.update(self.data)
         self.drawPlots()
-        self.qtimer.start(10000)
+        # self.qtimer.start(10000)
 
     def createPlotInterface(self):
 
