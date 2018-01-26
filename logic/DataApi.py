@@ -275,6 +275,7 @@ class TradesPrediction(object):
 
         _trades_filt2_diff = scipy.diff((self.trades_filt2, self.trades_time), axis=1)[0]
         np.copyto(self.trades_filt2_diff[1:], _trades_filt2_diff)
+
         # calc median deviation
         _trades_err = (self.trades_filt1 - self.trades_filt2)
         np.copyto(self.trades_err, _trades_err)
@@ -289,8 +290,21 @@ class TradesPrediction(object):
 
         _int = -1 * int(24. * 60 * 60 / self.time_delta)
 
-        _trade_level_sell_factor = 1.873
+        # weighted limits factor
+        _trades_filt2_diff_rel = self.trades_filt2_diff / (np.max(self.trades_filt2_diff) - np.min(self.trades_filt2_diff))
+        _trades_filt2_diff_rel_actual = np.mean(_trades_filt2_diff_rel[-6:])
 
+        _trade_level_factor_fix = 1.75
+        _trade_level_factor_var = abs(0.5 * _trades_filt2_diff_rel_actual)
+
+        if _trades_filt2_diff_rel_actual >= 0:
+            _trade_level_sell_factor = _trade_level_factor_fix + _trade_level_factor_var
+            _trade_level_buy_factor = _trade_level_factor_fix - _trade_level_factor_var
+        else:
+            _trade_level_sell_factor = _trade_level_factor_fix - _trade_level_factor_var
+            _trade_level_buy_factor = _trade_level_factor_fix + _trade_level_factor_var
+
+        # calc buy and sell limits
         _trade_level_sell = self.trades_err_diff_zc[scipy.where(self.trades_err_diff_zc > 0)]
         _trade_level_sell = np.mean(_trade_level_sell) * _trade_level_sell_factor
 
@@ -298,7 +312,7 @@ class TradesPrediction(object):
         self.trades_sell[len(self.trades_sell) - 1] = _trade_level_sell
 
         _trade_level_buy = self.trades_err_diff_zc[scipy.where(self.trades_err_diff_zc < 0)]
-        _trade_level_buy = np.mean(_trade_level_buy) * _trade_level_sell_factor
+        _trade_level_buy = np.mean(_trade_level_buy) * _trade_level_buy_factor
 
         np.copyto(self.trades_buy[:-1], self.trades_buy[1:])
         self.trades_buy[len(self.trades_buy) - 1] = _trade_level_buy
