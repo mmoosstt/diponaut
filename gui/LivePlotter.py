@@ -5,6 +5,23 @@ faulthandler.enable()
 import logic.DataApi
 import scipy
 import numpy as np
+import time
+
+
+class TimeAxisItem(pyqtgraph.AxisItem):
+
+    def __init__(self, *args, **kwargs):
+        pyqtgraph.AxisItem.__init__(self, *args, **kwargs)
+
+    def tickStrings(self, values, scale, spacing):
+
+        _t_str = []
+        for _v in values:
+            _t = time.gmtime(_v)
+            _s = "{0:02}:{1:02}:{2:02}".format(_t.tm_hour, _t.tm_min, _t.tm_sec)
+            _t_str.append(_s)
+
+        return _t_str
 
 
 class TraidingWidget(PySide.QtGui.QWidget):
@@ -13,8 +30,7 @@ class TraidingWidget(PySide.QtGui.QWidget):
 
     def __init__(self, parent=None):
         PySide.QtGui.QWidget.__init__(self, parent)
-        self.data = logic.DataApi.TradesLogger(time_delta=10, symbol="TRXETH")
-        self.data_prediction = logic.DataApi.TradesPrediction(time_delta=10, symbol="TRXETH")
+        self.Model = logic.DataApi.TradesLogger(time_delta=10, symbol="TRXETH")
 
         self.layout = PySide.QtGui.QVBoxLayout(self)
 
@@ -30,8 +46,7 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.qtimer_update_xachses.timeout.connect(self.timeout_sync_x_aches)
 
     def updateTrades(self):
-        self.data.update_ring()
-        self.data_prediction.update(self.data)
+        self.Model.update()
         self.drawPlots()
         # self.qtimer.start(10000)
 
@@ -43,66 +58,66 @@ class TraidingWidget(PySide.QtGui.QWidget):
 
         self.plotWidgets = {}
         self.plotWidgets["plot1"] = {}
-        self.plotWidgets["plot1"]["widget"] = pyqtgraph.PlotWidget(self)
+        self.plotWidgets["plot1"]["widget"] = pyqtgraph.PlotWidget(self, axisItems={'bottom': TimeAxisItem(orientation='bottom')})
         self.plotWidgets["plot1"]["curves"] = {}
         self.plotWidgets["plot1"]["curves"]["value_mean"] = {}
         self.plotWidgets["plot1"]["curves"]["value_mean"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
-        self.plotWidgets["plot1"]["curves"]["value_mean"]["x"] = self.data.ring_trades_time
-        self.plotWidgets["plot1"]["curves"]["value_mean"]["y"] = self.data.ring_value_mean_quantity
+        self.plotWidgets["plot1"]["curves"]["value_mean"]["x"] = self.Model.ring_trades_time
+        self.plotWidgets["plot1"]["curves"]["value_mean"]["y"] = self.Model.ring_value_mean_quantity
 
         self.plotWidgets["plot1"]["curves"]["value_flit1"] = {}
         self.plotWidgets["plot1"]["curves"]["value_flit1"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
-        self.plotWidgets["plot1"]["curves"]["value_flit1"]["x"] = self.data_prediction.trades_time
-        self.plotWidgets["plot1"]["curves"]["value_flit1"]["y"] = self.data_prediction.trades_filt1
+        self.plotWidgets["plot1"]["curves"]["value_flit1"]["x"] = self.Model.Prediction.trades_time
+        self.plotWidgets["plot1"]["curves"]["value_flit1"]["y"] = self.Model.Prediction.trades_filt1
 
         self.plotWidgets["plot1"]["curves"]["value_filt2"] = {}
         self.plotWidgets["plot1"]["curves"]["value_filt2"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
-        self.plotWidgets["plot1"]["curves"]["value_filt2"]["x"] = self.data_prediction.trades_time
-        self.plotWidgets["plot1"]["curves"]["value_filt2"]["y"] = self.data_prediction.trades_filt2
+        self.plotWidgets["plot1"]["curves"]["value_filt2"]["x"] = self.Model.Prediction.trades_time
+        self.plotWidgets["plot1"]["curves"]["value_filt2"]["y"] = self.Model.Prediction.trades_filt2
 
         self.plotWidgets["plot1"]["curves"]["events_buy"] = {}
         self.plotWidgets["plot1"]["curves"]["events_buy"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
-        self.plotWidgets["plot1"]["curves"]["events_buy"]["x"] = self.data_prediction.states.events_buy_time
-        self.plotWidgets["plot1"]["curves"]["events_buy"]["y"] = self.data_prediction.states.events_buy
+        self.plotWidgets["plot1"]["curves"]["events_buy"]["x"] = self.Model.Prediction.States.events_buy_time
+        self.plotWidgets["plot1"]["curves"]["events_buy"]["y"] = self.Model.Prediction.States.events_buy
         self.plotWidgets["plot1"]["curves"]["events_buy"]["style"] = lambda w: mySetSymbol(w, 2)
 
         self.plotWidgets["plot1"]["curves"]["events_sell"] = {}
         self.plotWidgets["plot1"]["curves"]["events_sell"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
-        self.plotWidgets["plot1"]["curves"]["events_sell"]["x"] = self.data_prediction.states.events_sell_time
-        self.plotWidgets["plot1"]["curves"]["events_sell"]["y"] = self.data_prediction.states.events_sell
+        self.plotWidgets["plot1"]["curves"]["events_sell"]["x"] = self.Model.Prediction.States.events_sell_time
+        self.plotWidgets["plot1"]["curves"]["events_sell"]["y"] = self.Model.Prediction.States.events_sell
         self.plotWidgets["plot1"]["curves"]["events_sell"]["style"] = lambda w: mySetSymbol(w, 3)
 
         self.plotWidgets["plot1"]["curves"]["events_zero_crossing"] = {}
         self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["widget"] = self.plotWidgets["plot1"]["widget"].plot()
-        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["x"] = self.data_prediction.states.events_zc_time
-        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["y"] = self.data_prediction.states.events_zc
+        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["x"] = self.Model.Prediction.States.events_zc_time
+        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["y"] = self.Model.Prediction.States.events_zc
         self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["style"] = lambda w: mySetSymbol(w, 4)
 
         self.plotWidgets["plot2"] = {}
-        self.plotWidgets["plot2"]["widget"] = pyqtgraph.PlotWidget(self)
+        self.plotWidgets["plot2"]["widget"] = pyqtgraph.PlotWidget(self, axisItems={'bottom': TimeAxisItem(orientation='bottom')})
         self.plotWidgets["plot2"]["curves"] = {}
         self.plotWidgets["plot2"]["curves"]["filt1-filt2"] = {}
         self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["widget"] = self.plotWidgets["plot2"]["widget"].plot()
-        self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["x"] = self.data_prediction.trades_time
-        self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["y"] = self.data_prediction.trades_err
+        self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["x"] = self.Model.Prediction.trades_time
+        self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["y"] = self.Model.Prediction.trades_err
 
         self.plotWidgets["plot2"]["curves"]["trades_buy"] = {}
         self.plotWidgets["plot2"]["curves"]["trades_buy"]["widget"] = self.plotWidgets["plot2"]["widget"].plot()
-        self.plotWidgets["plot2"]["curves"]["trades_buy"]["x"] = self.data_prediction.trades_time
-        self.plotWidgets["plot2"]["curves"]["trades_buy"]["y"] = self.data_prediction.trades_buy
+        self.plotWidgets["plot2"]["curves"]["trades_buy"]["x"] = self.Model.Prediction.trades_time
+        self.plotWidgets["plot2"]["curves"]["trades_buy"]["y"] = self.Model.Prediction.trades_buy
 
         self.plotWidgets["plot2"]["curves"]["trades_sell"] = {}
         self.plotWidgets["plot2"]["curves"]["trades_sell"]["widget"] = self.plotWidgets["plot2"]["widget"].plot()
-        self.plotWidgets["plot2"]["curves"]["trades_sell"]["x"] = self.data_prediction.trades_time
-        self.plotWidgets["plot2"]["curves"]["trades_sell"]["y"] = self.data_prediction.trades_sell
+        self.plotWidgets["plot2"]["curves"]["trades_sell"]["x"] = self.Model.Prediction.trades_time
+        self.plotWidgets["plot2"]["curves"]["trades_sell"]["y"] = self.Model.Prediction.trades_sell
 
         self.plotWidgets["plot3"] = {}
-        self.plotWidgets["plot3"]["widget"] = pyqtgraph.PlotWidget(self)
+        self.plotWidgets["plot3"]["widget"] = pyqtgraph.PlotWidget(self, axisItems={'bottom': TimeAxisItem(orientation='bottom')})
         self.plotWidgets["plot3"]["curves"] = {}
         self.plotWidgets["plot3"]["curves"]["ring_trades_count"] = {}
         self.plotWidgets["plot3"]["curves"]["ring_trades_count"]["widget"] = self.plotWidgets["plot3"]["widget"].plot()
-        self.plotWidgets["plot3"]["curves"]["ring_trades_count"]["x"] = self.data.ring_trades_time
-        self.plotWidgets["plot3"]["curves"]["ring_trades_count"]["y"] = self.data.ring_trades_count
+        self.plotWidgets["plot3"]["curves"]["ring_trades_count"]["x"] = self.Model.ring_trades_time
+        self.plotWidgets["plot3"]["curves"]["ring_trades_count"]["y"] = self.Model.ring_trades_count
 
         for _plot_key in sorted(self.plotWidgets.keys()):
             self.layout.addWidget(self.plotWidgets[_plot_key]["widget"])
