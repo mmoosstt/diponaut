@@ -1,13 +1,14 @@
 import time
 import h5py
-import numpy as np
 import os
 import sys
-from binance.client import Client
+import traceback
 import scipy
 import scipy.signal
+import numpy
 import matplotlib.pyplot as plt
-import traceback
+import binance.client
+from pyqtgraph.Qt import PYSIDE
 
 
 class BinanceClient(object):
@@ -22,7 +23,7 @@ class BinanceClient(object):
             self.key_secret = _f['key_storage'].attrs['key_secret']
             _f.close()
 
-            __class__.api = Client(self.key,  self.key_secret)
+            __class__.api = binance.client(self.key,  self.key_secret)
 
 
 class TradeData(object):
@@ -67,17 +68,17 @@ class TradesApi(object):
                 _quantity.append(_trade[names['quantity']])
                 _time.append(_trade[names['time']] / 1000)
 
-            _price = np.array(_price, np.double)
-            _quantity = np.array(_quantity, np.double)
+            _price = numpy.array(_price, numpy.double)
+            _quantity = numpy.array(_quantity, numpy.double)
 
             data = TradeData()
             data.value_open = _price[0]
             data.value_close = _price[-1:]
-            data.value_mean_quantity = np.sum(
-                _price * _quantity) / np.sum(_quantity)
-            data.value_max = np.max(_price)
-            data.value_min = np.min(_price)
-            data.quantity = np.sum(_quantity)
+            data.value_mean_quantity = numpy.sum(
+                _price * _quantity) / numpy.sum(_quantity)
+            data.value_max = numpy.max(_price)
+            data.value_min = numpy.min(_price)
+            data.quantity = numpy.sum(_quantity)
             data.trades_count = len(_price)
             data.trades_time = (min(_time) + max(_time)) / 2.
 
@@ -92,7 +93,7 @@ class TradesApi(object):
         _ret = __class__.client.api.create_order(
             symbol=symbols,
             side=Client.SIDE_BUY,
-            type=Client.ORDER_TYPE_MARKET,
+            type=binance.client.ORDER_TYPE_MARKET,
             quantity=quantity)
 
         print(_ret)
@@ -100,10 +101,10 @@ class TradesApi(object):
     @staticmethod
     def create_sell_order(symbols="TRXETH", quantity=100):
 
-        _ret = __class__.client.api.create_order(
+        _ret = __class__.binance.client.api.create_order(
             symbol=symbols,
-            side=Client.SIDE_SELL,
-            type=Client.ORDER_TYPE_MARKET,
+            side=binance.client.SIDE_SELL,
+            type=binance.client.ORDER_TYPE_MARKET,
             quantity=quantity)
 
         print(_ret)
@@ -123,14 +124,14 @@ class TradesLogger(object):
         self.ring_data_filepath = "{0}/{1}-{2}s-{3}.hdf".format(
             storages_path, symbol, time_delta, "logger")
         self.ring_pos = int(0)
-        self.ring_trades_count = np.array([_data.trades_count] * self.ring_size, dtype=np.int)
-        self.ring_trades_time = np.array([_data.trades_time] * self.ring_size, dtype=np.double)
-        self.ring_value_mean_quantity = np.array([_data.value_mean_quantity] * self.ring_size, dtype=np.double)
-        self.ring_value_max = np.array([_data.value_max] * self.ring_size, dtype=np.double)
-        self.ring_value_min = np.array([_data.value_min] * self.ring_size, dtype=np.double)
-        self.ring_value_close = np.array([_data.value_open] * self.ring_size, dtype=np.double)
-        self.ring_value_open = np.array([_data.value_close] * self.ring_size, dtype=np.double)
-        self.ring_quantity = np.array([_data.quantity] * self.ring_size, dtype=np.double)
+        self.ring_trades_count = numpy.array([_data.trades_count] * self.ring_size, dtype=numpy.int)
+        self.ring_trades_time = numpy.array([_data.trades_time] * self.ring_size, dtype=numpy.double)
+        self.ring_value_mean_quantity = numpy.array([_data.value_mean_quantity] * self.ring_size, dtype=numpy.double)
+        self.ring_value_max = numpy.array([_data.value_max] * self.ring_size, dtype=numpy.double)
+        self.ring_value_min = numpy.array([_data.value_min] * self.ring_size, dtype=numpy.double)
+        self.ring_value_close = numpy.array([_data.value_open] * self.ring_size, dtype=numpy.double)
+        self.ring_value_open = numpy.array([_data.value_close] * self.ring_size, dtype=numpy.double)
+        self.ring_quantity = numpy.array([_data.quantity] * self.ring_size, dtype=numpy.double)
 
         if not os.path.isfile(self.ring_data_filepath):
             self.save_storage(self.ring_data_filepath)
@@ -139,14 +140,14 @@ class TradesLogger(object):
 
     def load_storage(self, file_path):
         _f = h5py.File(file_path, 'r')
-        self.ring_trades_count = np.array(_f['ring_trades_count'], dtype=np.int)
-        self.ring_trades_time = np.array(_f['ring_trades_time'], dtype=np.double)
-        self.ring_value_mean_quantity = np.array(_f['ring_value_mean_quantity'], dtype=np.double)
-        self.ring_value_max = np.array(_f['ring_value_max'], dtype=np.double)
-        self.ring_value_min = np.array(_f['ring_value_min'], dtype=np.double)
-        self.ring_value_close = np.array(_f['ring_value_close'], dtype=np.double)
-        self.ring_value_open = np.array(_f['ring_value_open'], dtype=np.double)
-        self.ring_quantity = np.array(_f['ring_quantity'], dtype=np.double)
+        self.ring_trades_count = numpy.array(_f['ring_trades_count'], dtype=numpy.int)
+        self.ring_trades_time = numpy.array(_f['ring_trades_time'], dtype=numpy.double)
+        self.ring_value_mean_quantity = numpy.array(_f['ring_value_mean_quantity'], dtype=numpy.double)
+        self.ring_value_max = numpy.array(_f['ring_value_max'], dtype=numpy.double)
+        self.ring_value_min = numpy.array(_f['ring_value_min'], dtype=numpy.double)
+        self.ring_value_close = numpy.array(_f['ring_value_close'], dtype=numpy.double)
+        self.ring_value_open = numpy.array(_f['ring_value_open'], dtype=numpy.double)
+        self.ring_quantity = numpy.array(_f['ring_quantity'], dtype=numpy.double)
         self.ring_pos = int(_f['ring_pos'].value)
         _f.close()
 
@@ -200,24 +201,25 @@ class TradesLogger(object):
         self.save_storage(self.ring_data_filepath)
 
 
-class TradesPrediction(object):
+class TradesPrediction(PySide.QtCore.QObject):
 
     def __init__(self,  symbol="TRXETH", time_delta=10, storages_path="./data"):
-        self.States = TradingStates(symbol, time_delta, storages_path)
+        QtCore.QObject.__init__(self)
 
+        self.States = TradingStates(symbol, time_delta, storages_path)
         self.time_delta = time_delta  # s
         self.ring_size = int(60 * 60 * 24 / time_delta)
-        self.trades_time = np.array([0] * self.ring_size, dtype=np.double)
-        self.trades_err_ana = np.array([0] * self.ring_size, dtype=np.double)
-        self.trades_raw = np.array([0] * self.ring_size, dtype=np.double)
-        self.trades_median = np.array([0] * self.ring_size, dtype=np.double)
-        self.trades_filt1 = np.array([0] * self.ring_size, dtype=np.double)
-        self.trades_filt2 = np.array([0] * self.ring_size, dtype=np.double)
-        self.trades_err_diff_zc = np.array([0] * self.ring_size, dtype=np.double)
-        self.trades_filt2_diff = np.array([0] * self.ring_size, dtype=np.double)
-        self.trades_err = np.array([0] * self.ring_size, dtype=np.double)
-        self.trades_buy = np.array([np.NaN] * self.ring_size, dtype=np.double)
-        self.trades_sell = np.array([np.NaN] * self.ring_size, dtype=np.double)
+        self.trades_time = numpy.array([0] * self.ring_size, dtype=numpy.double)
+        self.trades_err_ana = numpy.array([0] * self.ring_size, dtype=numpy.double)
+        self.trades_raw = numpy.array([0] * self.ring_size, dtype=numpy.double)
+        self.trades_median = numpy.array([0] * self.ring_size, dtype=numpy.double)
+        self.trades_filt1 = numpy.array([0] * self.ring_size, dtype=numpy.double)
+        self.trades_filt2 = numpy.array([0] * self.ring_size, dtype=numpy.double)
+        self.trades_err_diff_zc = numpy.array([0] * self.ring_size, dtype=numpy.double)
+        self.trades_filt2_diff = numpy.array([0] * self.ring_size, dtype=numpy.double)
+        self.trades_err = numpy.array([0] * self.ring_size, dtype=numpy.double)
+        self.trades_buy = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
+        self.trades_sell = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
 
         self.ring_data_filepath = "{0}/{1}-{2}s-{3}.hdf".format(
             storages_path, symbol, time_delta, "prediction")
@@ -229,13 +231,13 @@ class TradesPrediction(object):
 
     def load_storage(self, file_path):
         _f = h5py.File(file_path, 'r')
-        self.trades_time = np.array(_f['trades_time'], dtype=np.double)
-        self.trades_median = np.array(_f['trades_median'], dtype=np.double)
-        self.trades_filt1 = np.array(_f['trades_filt1'], dtype=np.double)
-        self.trades_filt2 = np.array(_f['trades_filt2'], dtype=np.double)
-        self.trades_err = np.array(_f['trades_err'], dtype=np.double)
-        self.trades_buy = np.array(_f['trades_buy'], dtype=np.double)
-        self.trades_sell = np.array(_f['trades_sell'], dtype=np.double)
+        self.trades_time = numpy.array(_f['trades_time'], dtype=numpy.double)
+        self.trades_median = numpy.array(_f['trades_median'], dtype=numpy.double)
+        self.trades_filt1 = numpy.array(_f['trades_filt1'], dtype=numpy.double)
+        self.trades_filt2 = numpy.array(_f['trades_filt2'], dtype=numpy.double)
+        self.trades_err = numpy.array(_f['trades_err'], dtype=numpy.double)
+        self.trades_buy = numpy.array(_f['trades_buy'], dtype=numpy.double)
+        self.trades_sell = numpy.array(_f['trades_sell'], dtype=numpy.double)
         _f.close()
 
     def save_storage(self, file_path):
@@ -251,32 +253,32 @@ class TradesPrediction(object):
 
     def update(self, source):
 
-        _dummy = np.concatenate((source.ring_trades_time[source.ring_pos:],
-                                 source.ring_trades_time[:source.ring_pos]))
+        _dummy = numpy.concatenate((source.ring_trades_time[source.ring_pos:],
+                                    source.ring_trades_time[:source.ring_pos]))
 
-        np.copyto(self.trades_time, _dummy)
+        numpy.copyto(self.trades_time, _dummy)
 
-        _dummy = np.concatenate((source.ring_value_mean_quantity[source.ring_pos:],
-                                 source.ring_value_mean_quantity[:source.ring_pos]))
+        _dummy = numpy.concatenate((source.ring_value_mean_quantity[source.ring_pos:],
+                                    source.ring_value_mean_quantity[:source.ring_pos]))
 
-        np.copyto(self.trades_raw, _dummy)
+        numpy.copyto(self.trades_raw, _dummy)
 
         # predic raising or fallin global tendencies
         b, a = scipy.signal.butter(2, 0.01)
         _trades_filt1 = scipy.signal.filtfilt(b, a, (self.trades_raw, self.trades_time), axis=1)
-        np.copyto(self.trades_filt1, _trades_filt1[0])
+        numpy.copyto(self.trades_filt1, _trades_filt1[0])
 
         # predic raising or fallin global tendencies
         b, a = scipy.signal.butter(2, 0.001)
         _trades_filt2 = scipy.signal.filtfilt(b, a, (self.trades_raw, self.trades_time), axis=1)
-        np.copyto(self.trades_filt2, _trades_filt2[0])
+        numpy.copyto(self.trades_filt2, _trades_filt2[0])
 
         _trades_filt2_diff = scipy.diff((self.trades_filt2, self.trades_time), axis=1)[0]
-        np.copyto(self.trades_filt2_diff[1:], _trades_filt2_diff)
+        numpy.copyto(self.trades_filt2_diff[1:], _trades_filt2_diff)
 
         # calc median deviation
         _trades_err = (self.trades_filt1 - self.trades_filt2)
-        np.copyto(self.trades_err, _trades_err)
+        numpy.copyto(self.trades_err, _trades_err)
 
         # steigung trades error
         _trades_err_diff = scipy.diff(_trades_err)
@@ -284,35 +286,36 @@ class TradesPrediction(object):
         # predicted trade level, zc zero crossings
         _trades_err_diff_zc = (_trades_err_diff[:-1] * _trades_err_diff[1:]) < 0.
         _trades_err_diff_zc_value = _trades_err_diff_zc * self.trades_err[1:-1]
-        np.copyto(self.trades_err_diff_zc[2:], _trades_err_diff_zc_value)
-
-        _int = -1 * int(24. * 60 * 60 / self.time_delta)
+        numpy.copyto(self.trades_err_diff_zc[2:], _trades_err_diff_zc_value)
 
         # weighted limits factor
-        _trades_filt2_diff_rel = self.trades_filt2_diff / (np.max(self.trades_filt2_diff) - np.min(self.trades_filt2_diff))
-        _trades_filt2_diff_rel_actual = np.mean(_trades_filt2_diff_rel[-6:])
+        _trades_filt2_diff_rel = self.trades_filt2_diff / (numpy.max(self.trades_filt2_diff) - numpy.min(self.trades_filt2_diff))
+        _trades_filt2_diff_rel_actual = numpy.mean(_trades_filt2_diff_rel[(-3 * 60 / self.time_delta * 60):])
 
-        _trade_level_factor_fix = 1.75
-        _trade_level_factor_var = abs(0.5 * _trades_filt2_diff_rel_actual)
+        _trade_level_factor_buy_fix = 1.5
+        _trade_level_factor_buy_var = 1.5 * abs(_trades_filt2_diff_rel_actual)
+
+        _trade_level_factor_sell_fix = 1.5
+        _trade_level_factor_sell_var = 1.5 * abs(_trades_filt2_diff_rel_actual)
 
         if _trades_filt2_diff_rel_actual >= 0:
-            _trade_level_sell_factor = _trade_level_factor_fix + _trade_level_factor_var
-            _trade_level_buy_factor = _trade_level_factor_fix - _trade_level_factor_var
+            _trade_level_sell_factor = _trade_level_factor_sell_fix + _trade_level_factor_sell_var
+            _trade_level_buy_factor = _trade_level_factor_buy_fix - _trade_level_factor_buy_var
         else:
-            _trade_level_sell_factor = _trade_level_factor_fix - _trade_level_factor_var
-            _trade_level_buy_factor = _trade_level_factor_fix + _trade_level_factor_var
+            _trade_level_sell_factor = _trade_level_factor_sell_fix - _trade_level_factor_sell_var
+            _trade_level_buy_factor = _trade_level_factor_buy_fix + _trade_level_factor_buy_var
 
         # calc buy and sell limits
         _trade_level_sell = self.trades_err_diff_zc[scipy.where(self.trades_err_diff_zc > 0)]
-        _trade_level_sell = np.mean(_trade_level_sell) * _trade_level_sell_factor
+        _trade_level_sell = numpy.mean(_trade_level_sell) * _trade_level_sell_factor
 
-        np.copyto(self.trades_sell[:-1], self.trades_sell[1:])
+        numpy.copyto(self.trades_sell[:-1], self.trades_sell[1:])
         self.trades_sell[len(self.trades_sell) - 1] = _trade_level_sell
 
         _trade_level_buy = self.trades_err_diff_zc[scipy.where(self.trades_err_diff_zc < 0)]
-        _trade_level_buy = np.mean(_trade_level_buy) * _trade_level_buy_factor
+        _trade_level_buy = numpy.mean(_trade_level_buy) * _trade_level_buy_factor
 
-        np.copyto(self.trades_buy[:-1], self.trades_buy[1:])
+        numpy.copyto(self.trades_buy[:-1], self.trades_buy[1:])
         self.trades_buy[len(self.trades_buy) - 1] = _trade_level_buy
 
         def update_array(ring, event, price):
@@ -320,11 +323,11 @@ class TradesPrediction(object):
             if event:
                 ring[len(self.trades_buy) - 1] = price
             else:
-                ring[len(self.trades_buy) - 1] = np.NaN
+                ring[len(self.trades_buy) - 1] = numpy.NaN
 
         self.save_storage(self.ring_data_filepath)
 
-        _event_price = np.mean(self.trades_raw[-6:-1])
+        _event_price = numpy.mean(self.trades_raw[-6:-1])
         _event_buy = _trades_err[-1:][0] < _trade_level_buy
         _event_sell = _trades_err[-1:][0] > _trade_level_sell
         _event_zc = True in _trades_err_diff_zc[-20:]
@@ -342,12 +345,12 @@ class TradingStates(object):
         self.state_z = "start"
         self.zc_cnt = 0
         self.ring_size = int(60 * 60 * 24 / time_delta)
-        self.events_buy = np.array([np.NaN] * self.ring_size, dtype=np.double)
-        self.events_sell = np.array([np.NaN] * self.ring_size, dtype=np.double)
-        self.events_zc = np.array([np.NaN] * self.ring_size, dtype=np.double)
-        self.events_buy_time = np.array([np.NaN] * self.ring_size, dtype=np.double)
-        self.events_sell_time = np.array([np.NaN] * self.ring_size, dtype=np.double)
-        self.events_zc_time = np.array([np.NaN] * self.ring_size, dtype=np.double)
+        self.events_buy = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
+        self.events_sell = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
+        self.events_zc = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
+        self.events_buy_time = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
+        self.events_sell_time = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
+        self.events_zc_time = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
 
         self.ring_data_filepath = "{0}/{1}-{2}s-{3}.hdf".format(
             storages_path, symbol, time_delta, "events")
@@ -359,12 +362,12 @@ class TradingStates(object):
 
     def load_storage(self, file_path):
         _f = h5py.File(file_path, 'r')
-        self.events_buy = np.array(_f['events_buy'], dtype=np.double)
-        self.events_buy_time = np.array(_f['events_buy_time'], dtype=np.double)
-        self.events_sell = np.array(_f['events_sell'], dtype=np.double)
-        self.events_sell_time = np.array(_f['events_sell_time'], dtype=np.double)
-        self.events_zc = np.array(_f['events_zc'], dtype=np.double)
-        self.events_zc_time = np.array(_f['events_zc_time'], dtype=np.double)
+        self.events_buy = numpy.array(_f['events_buy'], dtype=numpy.double)
+        self.events_buy_time = numpy.array(_f['events_buy_time'], dtype=numpy.double)
+        self.events_sell = numpy.array(_f['events_sell'], dtype=numpy.double)
+        self.events_sell_time = numpy.array(_f['events_sell_time'], dtype=numpy.double)
+        self.events_zc = numpy.array(_f['events_zc'], dtype=numpy.double)
+        self.events_zc_time = numpy.array(_f['events_zc_time'], dtype=numpy.double)
         _f.close()
 
     def save_storage(self, file_path):
@@ -382,7 +385,7 @@ class TradingStates(object):
         def _add_event(events_arr, event, value):
 
             if event:
-                np.copyto(events_arr[:-1], events_arr[1:])
+                numpy.copyto(events_arr[:-1], events_arr[1:])
                 events_arr[len(events_arr) - 1] = value
 
         if zc_event:
@@ -442,5 +445,5 @@ class TradingStates(object):
 
 if __name__ == "__main__":
 
-    #TradesApi.create_sell_order("TRXETH", 500)
+    TradesApi.create_sell_order("TRXETH", 500)
     pass
