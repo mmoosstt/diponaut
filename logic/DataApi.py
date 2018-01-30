@@ -8,7 +8,27 @@ import scipy.signal
 import numpy
 import matplotlib.pyplot as plt
 import binance.client
-from pyqtgraph.Qt import PYSIDE
+import PySide.QtCore
+import threading
+import util.Interfaces
+
+
+GloVar = util.Interfaces.IVariables.getInterface()
+GloVar.factor_buy_fix = 1.5
+GloVar.factor_buy_var = 1.0
+GloVar.factor_buy = 0
+GloVar.factor_sell_fix = 1.5
+GloVar.factor_sell_var = 1.0
+GloVar.factor_sell = 0
+GloVar.filt1_hz = 0.01
+GloVar.filt2_hz = 0.001
+GloVar.filt2_grad_range = 60 / 10 * 60 * 3
+GloVar.filt2_grad = 0
+GloVar.state = ""
+GloVar.state_buy_time = 0
+GloVar.state_buy_price = 0
+GloVar.state_sell_time = 0
+GloVar.state_sell_price = 0
 
 
 class BinanceClient(object):
@@ -264,12 +284,12 @@ class TradesPrediction(PySide.QtCore.QObject):
         numpy.copyto(self.trades_raw, _dummy)
 
         # predic raising or fallin global tendencies
-        b, a = scipy.signal.butter(2, 0.01)
+        b, a = scipy.signal.butter(2, GloVar.get("filt1_hz"))
         _trades_filt1 = scipy.signal.filtfilt(b, a, (self.trades_raw, self.trades_time), axis=1)
         numpy.copyto(self.trades_filt1, _trades_filt1[0])
 
         # predic raising or fallin global tendencies
-        b, a = scipy.signal.butter(2, 0.001)
+        b, a = scipy.signal.butter(2, GloVar.get("filt2_hz"))
         _trades_filt2 = scipy.signal.filtfilt(b, a, (self.trades_raw, self.trades_time), axis=1)
         numpy.copyto(self.trades_filt2, _trades_filt2[0])
 
@@ -290,13 +310,15 @@ class TradesPrediction(PySide.QtCore.QObject):
 
         # weighted limits factor
         _trades_filt2_diff_rel = self.trades_filt2_diff / (numpy.max(self.trades_filt2_diff) - numpy.min(self.trades_filt2_diff))
-        _trades_filt2_diff_rel_actual = numpy.mean(_trades_filt2_diff_rel[(-3 * 60 / self.time_delta * 60):])
+        _trades_filt2_diff_rel_actual = numpy.mean(_trades_filt2_diff_rel[-1 * GloVar.get("filt2_grad_range"):])
 
-        _trade_level_factor_buy_fix = 1.5
-        _trade_level_factor_buy_var = 1.5 * abs(_trades_filt2_diff_rel_actual)
+        GloVar.set("filt2_grad", _trades_filt2_diff_rel_actual)
 
-        _trade_level_factor_sell_fix = 1.5
-        _trade_level_factor_sell_var = 1.5 * abs(_trades_filt2_diff_rel_actual)
+        _trade_level_factor_buy_fix = GloVar.get("factor_buy_fix")
+        _trade_level_factor_buy_var = GloVar.get("factor_buy_var") * abs(_trades_filt2_diff_rel_actual)
+
+        _trade_level_factor_sell_fix = GloVar.get("factor_sell_fix")
+        _trade_level_factor_sell_var = GloVar.get("factor_sell_var") * abs(_trades_filt2_diff_rel_actual)
 
         if _trades_filt2_diff_rel_actual >= 0:
             _trade_level_sell_factor = _trade_level_factor_sell_fix + _trade_level_factor_sell_var
@@ -304,6 +326,9 @@ class TradesPrediction(PySide.QtCore.QObject):
         else:
             _trade_level_sell_factor = _trade_level_factor_sell_fix - _trade_level_factor_sell_var
             _trade_level_buy_factor = _trade_level_factor_buy_fix + _trade_level_factor_buy_var
+
+        GloVar.set("factor_sell", _trade_level_sell_factor)
+        GloVar.set("factor_buy", _trade_level_buy_factor)
 
         # calc buy and sell limits
         _trade_level_sell = self.trades_err_diff_zc[scipy.where(self.trades_err_diff_zc > 0)]
@@ -365,6 +390,7 @@ class TradingStates(object):
         self.events_buy = numpy.array(_f['events_buy'], dtype=numpy.double)
         self.events_buy_time = numpy.array(_f['events_buy_time'], dtype=numpy.double)
         self.events_sell = numpy.array(_f['events_sell'], dtype=numpy.double)
+
         self.events_sell_time = numpy.array(_f['events_sell_time'], dtype=numpy.double)
         self.events_zc = numpy.array(_f['events_zc'], dtype=numpy.double)
         self.events_zc_time = numpy.array(_f['events_zc_time'], dtype=numpy.double)
