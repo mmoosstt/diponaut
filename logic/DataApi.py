@@ -13,22 +13,23 @@ import threading
 import utils.Interfaces
 
 
-GloVar = utils.Interfaces.IVariables.getInterface()
-GloVar.factor_buy_fix = 1.5
-GloVar.factor_buy_var = 1.0
-GloVar.factor_buy = 0
-GloVar.factor_sell_fix = 1.5
-GloVar.factor_sell_var = 1.0
-GloVar.factor_sell = 0
-GloVar.filt1_hz = 0.01
-GloVar.filt2_hz = 0.001
-GloVar.filt2_grad_range = 60 / 10 * 60 * 3
-GloVar.filt2_grad = 0
-GloVar.state = ""
-GloVar.state_buy_time = 0
-GloVar.state_buy_price = 0
-GloVar.state_sell_time = 0
-GloVar.state_sell_price = 0
+GloVar = utils.Interfaces.IVariables()
+GloVar.factor_buy_fix = utils.Interfaces.IVariable(value=1.5, type=float)
+GloVar.factor_buy_var = utils.Interfaces.IVariable(value=1., type=float)
+GloVar.factor_buy = utils.Interfaces.IVariable(value=0., type=float)
+GloVar.factor_sell_fix = utils.Interfaces.IVariable(value=1.5, type=float)
+GloVar.factor_sell_var = utils.Interfaces.IVariable(value=1., type=float)
+GloVar.factor_sell = utils.Interfaces.IVariable(value=0., type=float)
+GloVar.filt1_hz = utils.Interfaces.IVariable(value=0.01, type=float)
+GloVar.filt2_hz = utils.Interfaces.IVariable(value=0.001, type=float)
+GloVar.filt2_grad_range = utils.Interfaces.IVariable(value=300, type=int)
+GloVar.filt2_grad = utils.Interfaces.IVariable(value=0., type=float)
+GloVar.state = utils.Interfaces.IVariable(value="undef", type=str)
+GloVar.state_buy_time = utils.Interfaces.IVariable(value=0., type=int)
+GloVar.state_buy_price = utils.Interfaces.IVariable(value=0., type=float)
+GloVar.state_sell_time = utils.Interfaces.IVariable(value=0, type=int)
+GloVar.state_sell_price = utils.Interfaces.IVariable(value=0., type=float)
+GloVar.order_quantity = utils.Interfaces.IVariable(value=250, type=int)
 
 
 class BinanceClient(object):
@@ -118,7 +119,7 @@ class TradesApi(object):
             symbol=symbols,
             side=binance.client.Client.SIDE_BUY,
             type=binance.client.Client.ORDER_TYPE_MARKET,
-            quantity=quantity)
+            quantity=GloVar.get("order_quantity"))
 
         print(_ret)
 
@@ -129,7 +130,7 @@ class TradesApi(object):
             symbol=symbols,
             side=binance.client.Client.SIDE_SELL,
             type=binance.client.Client.ORDER_TYPE_MARKET,
-            quantity=quantity)
+            quantity=GloVar.get("order_quantity"))
 
         print(_ret)
 
@@ -491,7 +492,7 @@ class TradingStates(object):
 
             print(self.state, time.ctime(time.time()), price)
 
-        GloVar.set("state", self.state)
+            GloVar.set("state", self.state)
 
 
 if __name__ == "__main__":

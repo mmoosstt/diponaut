@@ -2,29 +2,39 @@ import threading
 import PySide.QtCore
 
 
-class IVariables(object):
+class IVariable(object):
 
-    singelton = None
+    def __init__(self, name=None, value=None, row=None, col=None, type=None):
+        self.name = name
+        self.value = value
+        self.row = row
+        self.col = col
+        self.type = type
+
+
+class IVariables(PySide.QtCore.QObject):
+
+    signal_set = PySide.QtCore.Signal(str, object)
+    singelton = {}
     lock = threading.Lock()
 
-    @staticmethod
-    def getInterface():
-        if IVariables.singelton:
-            return IVariables.singelton
-        else:
-            IVariables()
-            return IVariables.singelton
+    def __init__(self, parent=None):
+        PySide.QtCore.QObject.__init__(self, parent)
+        self.signal_set.connect(self._print)
 
-    def __init__(self):
-        if IVariables.singelton == None:
-            IVariables.singelton = self
+    def _print(self, name, value):
+        print(name, value)
 
     def set(self, name, value):
 
         IVariables.lock.acquire()
         try:
-            if name in IVariables.singelton.__dict__.keys():
-                IVariables.singelton.__dict__[name] = value
+
+            if name in self.__dict__.keys():
+                if isinstance(self.__dict__[name], IVariable):
+                    self.__dict__[name].value = self.__dict__[name].type(value)
+
+            self.signal_set.emit(name, value)
 
         finally:
             IVariables.lock.release()
@@ -33,9 +43,10 @@ class IVariables(object):
 
         IVariables.lock.acquire()
         try:
-            if name in IVariables.singelton.__dict__.keys():
-                _return = IVariables.singelton.__dict__[name]
 
+            if name in self.__dict__.keys():
+                if isinstance(self.__dict__[name], IVariable):
+                    _return = self.__dict__[name].type(self.__dict__[name].value)
         finally:
             IVariables.lock.release()
 

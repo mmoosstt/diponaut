@@ -1,7 +1,8 @@
-import gui.LivePlotter as diponaut
+import PySide.QtGui
+import gui.MainWindow
 
-app = diponaut.PySide.QtGui.QApplication([])
-MainWidget = diponaut.TraidingWidget()
+app = PySide.QtGui.QApplication([])
+MainWidget = gui.MainWindow.Main()
 MainWidget.resize(800, 800)
 MainWidget.show()
 app.exec_()
