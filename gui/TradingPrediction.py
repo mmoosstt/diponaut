@@ -1,10 +1,10 @@
 import PySide
 import PySide.QtGui
 import PySide.QtCore
-import DataApi
+from logic.DataApi import GloVar
 
 
-class TraidingView(PySide.QtGui.QWidget):
+class TraidingInterface(PySide.QtGui.QWidget):
 
     def __init__(self, parent=None):
         PySide.QtGui.QWidget.__init__(self, parent)
@@ -22,12 +22,14 @@ class TraidingView(PySide.QtGui.QWidget):
         layout.addWidget(PySide.QtGui.QLabel("last buy", self), 1, 0)
         self.lPriceBuy = PySide.QtGui.QLineEdit("0.0", self)
         layout.addWidget(self.lPriceBuy, 1, 1)
+
         self.lPriceBuyTime = PySide.QtGui.QLineEdit("00:00:00", self)
         layout.addWidget(self.lPriceBuyTime, 1, 2)
         # row 3
         layout.addWidget(PySide.QtGui.QLabel("last sell", self), 2, 0)
-        self.lPriceSell = PySide.QtGui.QLineEdit("0.0", self)
-        layout.addWidget(self.lPriceSell, 2, 1)
+        self.EditStateSell = PySide.QtGui.QLineEdit("0.0", self)
+        layout.addWidget(self.EditStateSell, 2, 1)
+
         self.lPriceSellTime = PySide.QtGui.QLineEdit("00:00:00", self)
         layout.addWidget(self.lPriceSellTime, 2, 2)
 
@@ -36,17 +38,26 @@ class TraidingView(PySide.QtGui.QWidget):
         layout.addWidget(PySide.QtGui.QLabel("buys ", self), 3, 1)
         layout.addWidget(PySide.QtGui.QLabel("sells", self), 3, 2)
         # row 4
-        layout.addWidget(PySide.QtGui.QLabel("limit factor fix", self), 4, 0)
-        self.iFactorFixBuy = PySide.QtGui.QLineEdit(self)
-        layout.addWidget(self.iFactorFixBuy, 4, 1)
-        self.iFactorFixSell = PySide.QtGui.QLineEdit(self)
-        layout.addWidget(self.iFactorFixSell, 4, 2)
+        layout.addWidget(PySide.QtGui.QLabel("factor_buy_fix", self), 4, 0)
+        self.qedit_factor_buy_fix = PySide.QtGui.QLineEdit(self)
+        layout.addWidget(self.qedit_factor_buy_fix, 4, 1)
+        self.qedit_factor_buy_fix.textChanged.connect(lambda value: GloVar.set("factor_buy_fix", float(value)))
+
+        layout.addWidget(PySide.QtGui.QLabel("factor_sell_fix", self), 4, 0)
+        self.qedit_factor_sell_fix = PySide.QtGui.QLineEdit(self)
+        layout.addWidget(self.qedit_factor_sell_fix, 4, 2)
+        self.qedit_factor_sell_fix.textChanged.connect(lambda value: GloVar.set("factor_sell_fix", float(value)))
+
         # row 5
-        layout.addWidget(PySide.QtGui.QLabel("limit factor var", self), 5, 0)
-        self.iFactorFixBuy = PySide.QtGui.QLineEdit(self)
-        layout.addWidget(self.iFactorFixBuy, 5, 1)
-        self.iFactorFixSell = PySide.QtGui.QLineEdit(self)
-        layout.addWidget(self.iFactorFixSell, 5, 2)
+        layout.addWidget(PySide.QtGui.QLabel("factor_buy_var", self), 5, 0)
+        self.qedit_factor_buy_var = PySide.QtGui.QLineEdit(self)
+        layout.addWidget(self.qedit_factor_buy_var, 5, 1)
+        self.qedit_factor_buy_var.textChanged.connect(lambda value: GloVar.set("factor_buy_var", float(value)))
+
+        layout.addWidget(PySide.QtGui.QLabel("factor_sell_var", self), 5, 0)
+        self.qedit_factor_sell_var = PySide.QtGui.QLineEdit(self)
+        layout.addWidget(self.qedit_factor_sell_var, 5, 2)
+        self.qedit_factor_sell_var.textChanged.connect(lambda value: GloVar.set("factor_sell_var", float(value)))
 
         self.setLayout(layout)
 
@@ -64,7 +75,7 @@ class TraidingView(PySide.QtGui.QWidget):
 if __name__ == "__main__":
     app = PySide.QtGui.QApplication([])
 
-    MainWidget = TraidingData()
+    MainWidget = TraidingInterface()
     MainWidget.resize(800, 800)
     MainWidget.show()
     app.exec_()
