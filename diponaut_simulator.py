@@ -5,10 +5,11 @@ app = PySide.QtGui.QApplication([])
 MainWidget = gui.MainWindow.Main(parent=None,
                                  symbol='TRXETH',
                                  time_delta=10,
-                                 file_path_data="./data",
+                                 file_path_data="./data_sim",
                                  file_path_config="./data/config.xml",
-                                 simulation=False,
-                                 update_rate=10)
+                                 simulation=True,
+                                 update_rate=0.001)
+
 MainWidget.resize(800, 800)
 MainWidget.show()
 app.exec_()

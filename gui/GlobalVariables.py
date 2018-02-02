@@ -16,7 +16,6 @@ class myLineEdit(PySide.QtGui.QLineEdit):
         self.textChanged.connect(self.myTextChanged)
 
     def myTextChanged(self, value):
-        print(value)
         self.value = value
         self.textChanged.disconnect(self.myTextChanged)
         self.valueChanged.emit(self.name, self.value)
@@ -42,7 +41,7 @@ class GlobalVariables(PySide.QtGui.QWidget):
             _obj = self.GloVar.__dict__[_name]
             if isinstance(_obj, utils.Interfaces.IVariable):
 
-                print(_obj.type)
+                print(_obj.type, _name)
                 layout.addWidget(PySide.QtGui.QLabel(_name, self), row, col)
                 self.__dict__["Q{0}".format(_name)] = myLineEdit(self, _name)
                 layout.addWidget(self.__dict__["Q{0}".format(_name)], row, col + 1)
@@ -54,7 +53,6 @@ class GlobalVariables(PySide.QtGui.QWidget):
 
     def SetGloValues(self, name, value):
 
-        print(value)
         _attrib_str = "Q{0}".format(name)
         _callback_str = "C{0}".format(name)
 

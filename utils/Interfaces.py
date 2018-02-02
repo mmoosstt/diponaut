@@ -20,10 +20,6 @@ class IVariables(PySide.QtCore.QObject):
 
     def __init__(self, parent=None):
         PySide.QtCore.QObject.__init__(self, parent)
-        self.signal_set.connect(self._print)
-
-    def _print(self, name, value):
-        print(name, value)
 
     def set(self, name, value):
 

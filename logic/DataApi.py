@@ -6,8 +6,6 @@ import traceback
 import scipy
 import scipy.signal
 import numpy
-import matplotlib.pyplot as plt
-import binance.client
 import PySide.QtCore
 import threading
 import utils.Interfaces
@@ -32,133 +30,48 @@ GloVar.state_sell_price = utils.Interfaces.IVariable(value=0., type=float)
 GloVar.order_quantity = utils.Interfaces.IVariable(value=250, type=int)
 
 
-class BinanceClient(object):
+class TradeIF(object):
+    import logic.TradeApiSim
+    import logic.TradeApi
 
-    api = None
+    def __init__(self, symbol="TRXETH", time_delta=10, file_path_data="./data_sim", file_path_config="./data/config.xml"):
+        self.symbol = symbol
+        self.time_delta = time_delta
+        self.file_path_data = file_path_data
+        self.file_path_config = file_path_config
+        self.api = None
 
-    def __init__(self, file_path="./data/BinanceApi.hdf5"):
-
-        if __class__.api == None:
-            _f = h5py.File(file_path, 'r')
-            self.key = _f['key_storage'].attrs['key']
-            self.key_secret = _f['key_storage'].attrs['key_secret']
-            _f.close()
-
-            __class__.api = binance.client.Client(self.key,  self.key_secret)
-
-
-class TradeData(object):
-
-    def __init__(self):
-        self.trades_count = 0
-        self.trades_time = time.time()
-        self.value_mean_quantity = 0
-        self.value_min = 0
-        self.value_max = 0
-        self.value_open = 0
-        self.value_close = 0
-        self.quantity = 0
-
-
-class TradesApi(object):
-
-    client = None
-
-    def __init__(self, file_path="./data", file_name="BinanceApi.hdf5"):
-        if __class__.client == None:
-            __class__.client = BinanceClient("{0}/{1}".format(file_path, file_name))
-
-    @staticmethod
-    def getTradeData(startTime, endTime, symbol='TRXETH'):
-
-        try:
-            _trades = __class__.client.api.get_aggregate_trades(
-                symbol=symbol, startTime=startTime, endTime=endTime)
-        except:
-            _trades = []
-            traceback.print_exc()
-
-        names = {"id": "a", "price": "p", "quantity": "q", "time": "T"}
-
-        if _trades != []:
-
-            _id = []
-            _price = []
-            _quantity = []
-            _time = []
-            for _trade in _trades:
-
-                _id.append(_trade[names['id']])
-                _price.append(_trade[names['price']])
-                _quantity.append(_trade[names['quantity']])
-                _time.append(_trade[names['time']] / 1000)
-
-            _price = numpy.array(_price, numpy.double)
-            _quantity = numpy.array(_quantity, numpy.double)
-
-            data = TradeData()
-            data.value_open = _price[0]
-            data.value_close = _price[-1:]
-            data.value_mean_quantity = numpy.sum(
-                _price * _quantity) / numpy.sum(_quantity)
-            data.value_max = numpy.max(_price)
-            data.value_min = numpy.min(_price)
-            data.quantity = numpy.sum(_quantity)
-            data.trades_count = len(_price)
-            data.trades_time = (min(_time) + max(_time)) / 2.
-
-            return data
+    def load(self, simulation=False):
+        if simulation:
+            self.api = TradeIF.logic.TradeApiSim.TradeApi(self.symbol, self.time_delta, self.file_path_data, "")
         else:
-            print('No trades')
-            return None
+            self.api = TradeIF.logic.TradeApi.TradeApi(self.symbol, self.time_delta, "", self.file_path_config)
 
-    @staticmethod
-    def create_buy_order(symbols='TRXETH', quantity=100):
-
-        _ret = __class__.client.api.create_order(
-            symbol=symbols,
-            side=binance.client.Client.SIDE_BUY,
-            type=binance.client.Client.ORDER_TYPE_MARKET,
-            quantity=GloVar.get("order_quantity"))
-
-        print(_ret)
-
-    @staticmethod
-    def create_sell_order(symbols="TRXETH", quantity=100):
-
-        _ret = __class__.client.api.create_order(
-            symbol=symbols,
-            side=binance.client.Client.SIDE_SELL,
-            type=binance.client.Client.ORDER_TYPE_MARKET,
-            quantity=GloVar.get("order_quantity"))
-
-        print(_ret)
+        return self.api
 
 
 class TradesLogger(object):
 
-    def __init__(self, symbol='TRXETH', time_delta=10, file_path="./data"):
-        Start = TradesApi(file_path=file_path)
-
-        self.Prediction = TradesPrediction(symbol, time_delta, file_path)
+    def __init__(self, symbol='TRXETH', time_delta=10, file_path_data="./data_sim", file_path_config="./data/config.xml", simulation=False):
+        self.api = TradeIF(symbol, time_delta, file_path_data, file_path_config).load(simulation)
+        self.Prediction = TradesPrediction(symbol, time_delta, file_path_data, self.api)
+        self.simulation = simulation
 
         self.time_delta = time_delta
         self.time_last_update = 0
         self.symbol = symbol
 
-        _data = TradeData()
         self.ring_size = int(60 * 60 * 24 / time_delta)
-        self.ring_data_filepath = "{0}/{1}-{2}s-{3}.hdf".format(
-            file_path, symbol, time_delta, "logger")
+        self.ring_data_filepath = "{0}/{1}-{2}s-{3}.hdf".format(file_path_data, symbol, time_delta, "logger")
         self.ring_pos = int(0)
-        self.ring_trades_count = numpy.array([_data.trades_count] * self.ring_size, dtype=numpy.int)
-        self.ring_trades_time = numpy.array([_data.trades_time] * self.ring_size, dtype=numpy.double)
-        self.ring_value_mean_quantity = numpy.array([_data.value_mean_quantity] * self.ring_size, dtype=numpy.double)
-        self.ring_value_max = numpy.array([_data.value_max] * self.ring_size, dtype=numpy.double)
-        self.ring_value_min = numpy.array([_data.value_min] * self.ring_size, dtype=numpy.double)
-        self.ring_value_close = numpy.array([_data.value_open] * self.ring_size, dtype=numpy.double)
-        self.ring_value_open = numpy.array([_data.value_close] * self.ring_size, dtype=numpy.double)
-        self.ring_quantity = numpy.array([_data.quantity] * self.ring_size, dtype=numpy.double)
+        self.ring_trades_count = numpy.array([0] * self.ring_size, dtype=numpy.int)
+        self.ring_trades_time = numpy.array([time.time()] * self.ring_size, dtype=numpy.double)
+        self.ring_value_mean_quantity = numpy.array([0.] * self.ring_size, dtype=numpy.double)
+        self.ring_value_max = numpy.array([0.] * self.ring_size, dtype=numpy.double)
+        self.ring_value_min = numpy.array([0.] * self.ring_size, dtype=numpy.double)
+        self.ring_value_close = numpy.array([0.] * self.ring_size, dtype=numpy.double)
+        self.ring_value_open = numpy.array([0.] * self.ring_size, dtype=numpy.double)
+        self.ring_quantity = numpy.array([0.] * self.ring_size, dtype=numpy.double)
 
         if not os.path.isfile(self.ring_data_filepath):
             self.save_storage(self.ring_data_filepath)
@@ -191,7 +104,7 @@ class TradesLogger(object):
         _f.create_dataset('ring_pos', data=self.ring_pos)
         _f.close()
 
-    def update(self):
+    def update(self, save_storage=True):
 
         _endTime = int(time.time() * 1000)
 
@@ -205,7 +118,7 @@ class TradesLogger(object):
 
         _startTime = int(_endTime - _errTime - self.time_delta * 1e3)
 
-        _trade = TradesApi.getTradeData(_startTime, _endTime, self.symbol)
+        _trade = self.api.getTradeData(_startTime, _endTime)
 
         if _trade != None:
             self.time_last_update = _endTime
@@ -224,16 +137,18 @@ class TradesLogger(object):
             if self.ring_pos == self.ring_size:
                 self.ring_pos = 0
 
-        self.Prediction.update(self)
-        self.save_storage(self.ring_data_filepath)
+        self.Prediction.update(self, save_storage)
+
+        if save_storage:
+            self.save_storage(self.ring_data_filepath)
 
 
 class TradesPrediction(PySide.QtCore.QObject):
 
-    def __init__(self,  symbol="TRXETH", time_delta=10, storages_path="./data"):
+    def __init__(self,  symbol="TRXETH", time_delta=10, storages_path="./data", api=None):
         PySide.QtCore.QObject.__init__(self)
-
-        self.States = TradingStates(symbol, time_delta, storages_path)
+        self.api = api
+        self.States = TradingStates(symbol, time_delta, storages_path, self.api)
         self.time_delta = time_delta  # s
         self.ring_size = int(60 * 60 * 24 / time_delta)
         self.trades_time = numpy.array([0] * self.ring_size, dtype=numpy.double)
@@ -278,7 +193,7 @@ class TradesPrediction(PySide.QtCore.QObject):
         _f.create_dataset('trades_sell', data=self.trades_sell)
         _f.close()
 
-    def update(self, source):
+    def update(self, source, save_storage):
 
         _dummy = numpy.concatenate((source.ring_trades_time[source.ring_pos:],
                                     source.ring_trades_time[:source.ring_pos]))
@@ -357,7 +272,8 @@ class TradesPrediction(PySide.QtCore.QObject):
             else:
                 ring[len(self.trades_buy) - 1] = numpy.NaN
 
-        self.save_storage(self.ring_data_filepath)
+        if save_storage:
+            self.save_storage(self.ring_data_filepath)
 
         _event_price = numpy.mean(self.trades_raw[-6:-1])
         _event_buy = _trades_err[-1:][0] < _trade_level_buy
@@ -366,15 +282,16 @@ class TradesPrediction(PySide.QtCore.QObject):
         _event_rising = (self.trades_filt2_diff[-1:][0]) >= 0
         _event_time = self.trades_time[-1:][0]
 
-        self.States.update(_event_price, _event_time, _event_buy, _event_sell, _event_zc, _event_rising)
+        self.States.update(_event_price, _event_time, _event_buy, _event_sell, _event_zc, _event_rising, save_storage)
 
 
 class TradingStates(object):
 
-    def __init__(self, symbol="TRXETH", time_delta=10, storages_path="./data"):
+    def __init__(self, symbol="TRXETH", time_delta=10, storages_path="./data", api=None):
+        self.api = api
         self.symbol = symbol
         self.state = "start"
-        self.state_z = "start"
+        self.state_z = "None"
         self.zc_cnt = 0
         self.ring_size = int(60 * 60 * 24 / time_delta)
         self.events_buy = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
@@ -413,7 +330,7 @@ class TradingStates(object):
         _f.create_dataset('events_zc_time', data=self.events_zc_time)
         _f.close()
 
-    def update(self, price, time_event, buy_event=False, sell_event=False, zc_event=False, rising_event=False):
+    def update(self, price, time_event, buy_event=False, sell_event=False, zc_event=False, rising_event=False, save_storage=True):
 
         def _add_event(events_arr, event, value):
 
@@ -443,7 +360,9 @@ class TradingStates(object):
 
             _add_event(self.events_zc_time, True, time_event)
             _add_event(self.events_zc, True, price)
-            self.save_storage(self.ring_data_filepath)
+            if save_storage:
+                self.save_storage(self.ring_data_filepath)
+
             GloVar.set("state_buy_price", price)
             GloVar.set("state_buy_time", time_event)
 
@@ -461,11 +380,12 @@ class TradingStates(object):
               (zc_event == True and buy_event == True)):
             self.state = "stro_buy"
 
-            TradesApi.create_buy_order(self.symbol, 500)
+            self.api.create_buy_order(500)
 
             _add_event(self.events_buy_time, True, time_event)
             _add_event(self.events_buy, True, price)
-            self.save_storage(self.ring_data_filepath)
+            if save_storage:
+                self.save_storage(self.ring_data_filepath)
 
         elif (self.state == "stro_buy" and
               sell_event == True):
@@ -479,11 +399,12 @@ class TradingStates(object):
               ):
             self.state = "stro_sell"
 
-            TradesApi.create_sell_order(self.symbol, 500)
+            self.api.create_sell_order(500)
 
             _add_event(self.events_sell_time, True, time_event)
             _add_event(self.events_sell, True, price)
-            self.save_storage(self.ring_data_filepath)
+            if save_storage:
+                self.save_storage(self.ring_data_filepath)
             GloVar.set("state_sell_price", price)
             GloVar.set("state_sell_time", time_event)
 
@@ -497,5 +418,4 @@ class TradingStates(object):
 
 if __name__ == "__main__":
 
-    TradesApi.create_sell_order("TRXETH", 500)
     pass

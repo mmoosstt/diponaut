@@ -28,9 +28,11 @@ class TraidingWidget(PySide.QtGui.QWidget):
 
     color_cnt = 1
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, symbol='TRXETH', time_delta=10, file_path_data="./data_sim", file_path_config="./data/config.xml", simulation=False, update_rate=0.1):
         PySide.QtGui.QWidget.__init__(self, parent)
-        self.Model = logic.DataApi.TradesLogger(time_delta=10, symbol="TRXETH")
+
+        self.Model = logic.DataApi.TradesLogger(symbol, time_delta, file_path_data, file_path_config, simulation)
+        self.simulation = simulation
 
         self.layout = PySide.QtGui.QVBoxLayout(self)
 
@@ -38,17 +40,22 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.setLayout(self.layout)
         self.qtimer = PySide.QtCore.QTimer()
         self.qtimer.timeout.connect(self.updateTrades)
-        self.qtimer.start(10000)
+        self.qtimer.start(1000 * update_rate)
         # self.qtimer.setSingleShot(True)
+
+        self.qtimer2 = PySide.QtCore.QTimer()
+        self.qtimer2.timeout.connect(self.drawPlots)
+        self.qtimer2.start(5000)
 
         self.qtimer_update_xachses = PySide.QtCore.QTimer()
         self.qtimer_update_xachses.setSingleShot(True)
         self.qtimer_update_xachses.timeout.connect(self.timeout_sync_x_aches)
 
     def updateTrades(self):
-        self.Model.update()
-        self.drawPlots()
-        # self.qtimer.start(10000)
+        if self.simulation:
+            self.Model.update(False)
+        else:
+            self.Model.update()
 
     def createPlotInterface(self):
 
