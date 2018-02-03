@@ -1,13 +1,13 @@
 import PySide
 import PySide.QtGui
 import PySide.QtCore
-import logic.DataApi
+import logic.TradeGlobals
 import utils.Interfaces
 
 
 class myLineEdit(PySide.QtGui.QLineEdit):
 
-    valueChanged = PySide.QtCore.Signal(str, object)
+    valueChanged = PySide.QtCore.Signal(str, utils.Interfaces.IVariable)
 
     def __init__(self, parent, name):
         PySide.QtGui.QLineEdit.__init__(self, parent)
@@ -29,7 +29,7 @@ class GlobalVariables(PySide.QtGui.QWidget):
 
         self.data_state = None
         self.data_prediction = None
-        self.GloVar = logic.DataApi.GloVar
+        self.GloVar = logic.TradeGlobals.GloVar
         self.GloVar.signal_set.connect(self.SetGloValues)
 
         layout = PySide.QtGui.QGridLayout(self)
@@ -51,7 +51,7 @@ class GlobalVariables(PySide.QtGui.QWidget):
 
         self.setLayout(layout)
 
-    def SetGloValues(self, name, value):
+    def SetGloValues(self, name, instance):
 
         _attrib_str = "Q{0}".format(name)
         _callback_str = "C{0}".format(name)
@@ -62,7 +62,7 @@ class GlobalVariables(PySide.QtGui.QWidget):
 
             if isinstance(_object, PySide.QtGui.QLineEdit):
                 _object.valueChanged.disconnect(_callback)
-                _object.setText(str(value))
+                _object.setText(str(instance.value))
                 _object.valueChanged.connect(_callback)
 
     def SetDataStates(self, Data):

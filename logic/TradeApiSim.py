@@ -1,11 +1,10 @@
-import numpy
-import binance.client
-import traceback
-import xml.etree.ElementTree as et
-import time
 import os
+import numpy
 import h5py
 import time
+import traceback
+from logic.TradeGlobals import GloVar
+from logic import TradeGlobals
 
 
 class TradeData(object):
@@ -21,12 +20,10 @@ class TradeData(object):
         self.quantity = 0
 
 
-class TradeApi(object):
+class Api(object):
 
-    def __init__(self, symbol="TRXETH", time_delta=10, file_path_data="./data_sim", file_path_config=""):
-        self._simulator = TradeSimulator(symbol=symbol, time_delta=time_delta, file_path=file_path_data)
-        self.time_delta = time_delta
-        self.symbol = symbol
+    def __init__(self, file_path):
+        self._simulator = TradeSimulator(file_path)
         self.start_time = time.time()
 
     def getTradeData(self, startTime, endTime):
@@ -43,34 +40,29 @@ class TradeApi(object):
         data.trades_count = self._simulator.ring_trades_count[_pos]
         data.trades_time = self.start_time
 
-        self.start_time += self.time_delta
+        self.start_time += GloVar.get("trade_cycle_time")
 
-        if _pos > self._simulator.ring_size:
+        if int(self._simulator.ring_size - 1) == int(_pos):
             self._simulator.ring_pos = 0
         else:
             self._simulator.ring_pos += 1
 
         return data
 
-    def create_buy_order(self, quantity=100):
+    def create_buy_order(self):
         pass
 
-    def create_sell_order(self, quantity=100):
+    def create_sell_order(self):
         pass
 
 
 class TradeSimulator(object):
 
-    def __init__(self, symbol='TRXETH', time_delta=10, file_path="./data_sim"):
-
-        self.time_delta = time_delta
-        self.time_last_update = 0
-        self.symbol = symbol
+    def __init__(self, file_path):
 
         _data = TradeData()
-        self.ring_size = int(60 * 60 * 24 / time_delta)
-        self.ring_data_filepath = "{0}/{1}-{2}s-{3}.hdf".format(
-            file_path, symbol, time_delta, "sim")
+        self.ring_size = int(60 * 60 * 24 / GloVar.get("trade_cycle_time"))
+        self.ring_data_filepath = file_path
         self.ring_pos = int(0)
         self.ring_trades_count = numpy.array([_data.trades_count] * self.ring_size, dtype=numpy.int)
         self.ring_trades_time = numpy.array([_data.trades_time] * self.ring_size, dtype=numpy.double)
@@ -114,6 +106,7 @@ class TradeSimulator(object):
 
 
 if __name__ == "__main__":
-    api = TradeApi(symbol="TRXETH", time_delta=10, file_path_data="../data_sim", file_path_config="")
-    _t = api.getTradeData(1, 1)
-    print(_t)
+    api = ApiSim("../data_sim/TRXETH-10s-sim.hdf")
+    print(api.getTradeData(1, 1))
+    api.create_buy_order()
+    api.create_sell_order()

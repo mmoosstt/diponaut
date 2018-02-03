@@ -3,12 +3,10 @@ import gui.MainWindow
 
 app = PySide.QtGui.QApplication([])
 MainWidget = gui.MainWindow.Main(parent=None,
-                                 symbol='TRXETH',
-                                 time_delta=10,
-                                 file_path_data="./data_sim",
-                                 file_path_config="./data/config.xml",
                                  simulation=True,
-                                 update_rate=0.001)
+                                 update_rate_trade_data=0.001,
+                                 update_rate_plotting=10.,
+                                 update_rate_save_data=100)
 
 MainWidget.resize(800, 800)
 MainWidget.show()

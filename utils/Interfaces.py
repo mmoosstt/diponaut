@@ -4,17 +4,18 @@ import PySide.QtCore
 
 class IVariable(object):
 
-    def __init__(self, name=None, value=None, row=None, col=None, type=None):
+    def __init__(self, name=None, value=None, row=None, col=None, type=None, protected=False):
         self.name = name
         self.value = value
         self.row = row
         self.col = col
         self.type = type
+        self.protected = protected
 
 
 class IVariables(PySide.QtCore.QObject):
 
-    signal_set = PySide.QtCore.Signal(str, object)
+    signal_set = PySide.QtCore.Signal(str, IVariable)
     singelton = {}
     lock = threading.Lock()
 
@@ -30,7 +31,7 @@ class IVariables(PySide.QtCore.QObject):
                 if isinstance(self.__dict__[name], IVariable):
                     self.__dict__[name].value = self.__dict__[name].type(value)
 
-            self.signal_set.emit(name, value)
+            self.signal_set.emit(name, self.__dict__[name])
 
         finally:
             IVariables.lock.release()
@@ -47,3 +48,9 @@ class IVariables(PySide.QtCore.QObject):
             IVariables.lock.release()
 
         return _return
+
+    def emit_all(self):
+
+        for name in self.__dict__.keys():
+            if isinstance(self.__dict__[name], IVariable):
+                self.signal_set.emit(name, self.__dict__[name])

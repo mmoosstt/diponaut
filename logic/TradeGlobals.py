@@ -1,0 +1,43 @@
+import utils.Interfaces
+
+GloVar = utils.Interfaces.IVariables()
+
+GloVar.trade_symbol = utils.Interfaces.IVariable(value="TRXETH", type=str, protected=False)
+GloVar.trade_cycle_time = utils.Interfaces.IVariable(value=10, type=int, protected=False)
+GloVar.trade_quantity = utils.Interfaces.IVariable(value=250, type=int, protected=True)
+
+GloVar.factor_buy_fix = utils.Interfaces.IVariable(value=2.5, type=float)
+GloVar.factor_sell_fix = utils.Interfaces.IVariable(value=1.5, type=float)
+
+GloVar.filt1_hz = utils.Interfaces.IVariable(value=0.01, type=float)
+GloVar.filt1_grad_range = utils.Interfaces.IVariable(value=6, type=int)
+GloVar.filt1_grad = utils.Interfaces.IVariable(value=0., type=float)
+
+GloVar.filt2_hz = utils.Interfaces.IVariable(value=0.001, type=float)
+GloVar.filt2_grad_range = utils.Interfaces.IVariable(value=300, type=int)
+GloVar.filt2_grad = utils.Interfaces.IVariable(value=0., type=float)
+GloVar.filt2_grad_min = utils.Interfaces.IVariable(value=0., type=float)
+GloVar.filt2_grad_max = utils.Interfaces.IVariable(value=0., type=float)
+
+GloVar.state = utils.Interfaces.IVariable(value="undef", type=str)
+GloVar.state_buy_time = utils.Interfaces.IVariable(value=0., type=int)
+GloVar.state_buy_price = utils.Interfaces.IVariable(value=0., type=float)
+GloVar.state_sell_time = utils.Interfaces.IVariable(value=0, type=int)
+GloVar.state_sell_price = utils.Interfaces.IVariable(value=0., type=float)
+GloVar.state_zero_crossing_time = utils.Interfaces.IVariable(value=0, type=int)
+GloVar.state_zero_crossing_price = utils.Interfaces.IVariable(value=0., type=float)
+
+GloVar.state_sell_lost_limit = utils.Interfaces.IVariable(value=-1.4e10, type=float)
+GloVar.state_sell_win_limit = utils.Interfaces.IVariable(value=1.4e10, type=float)
+
+
+GloVar.order_delta_price = utils.Interfaces.IVariable(value=0., type=float)
+
+
+if __name__ == "__main__":
+
+    def test(eins, zwei):
+        print(eins, zwei.value, zwei.name)
+
+    GloVar.signal_set.connect(test)
+    GloVar.emit_all()

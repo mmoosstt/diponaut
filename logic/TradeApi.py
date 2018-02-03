@@ -1,13 +1,12 @@
 import numpy
-import binance.client
-import traceback
-import xml.etree.ElementTree as et
 import time
-import os
-import h5py
+import traceback
+import xml.etree.ElementTree
+import binance.client
+from logic.TradeGlobals import GloVar
 
 
-class TradeData(object):
+class ApiData(object):
 
     def __init__(self):
         self.trades_count = 0
@@ -24,24 +23,22 @@ class BinanceClient(object):
 
     def __init__(self, file_path="./data/config.xml"):
 
-        _e = et.parse(file_path)
-        _key = _e.find("//binance/key").text
-        _secret = _e.find("//binance/secret").text
+        _e = xml.etree.ElementTree.parse(file_path)
+        _key = _e.find("./binance/key").text
+        _secret = _e.find("./binance/secret").text
         self.binance_api = binance.client.Client(_key, _secret)
 
 
-class TradeApi(object):
+class Api(object):
 
-    def __init__(self, symbol="TRXETH", time_delta=10, file_path_data="", file_path_config="./data/config.xml"):
-        self.binance_api = BinanceClient(file_path_config).binance_api
-        self.symbol = symbol
-        self.time_delta = time_delta
+    def __init__(self, file_path):
+        self.binance_api = BinanceClient(file_path).binance_api
 
     def getTradeData(self, startTime, endTime):
 
         try:
             _trades = self.binance_api.get_aggregate_trades(
-                symbol=self.symbol, startTime=startTime, endTime=endTime)
+                symbol=GloVar.get("trade_symbol"), startTime=startTime, endTime=endTime)
         except:
             _trades = []
             traceback.print_exc()
@@ -64,7 +61,7 @@ class TradeApi(object):
             _price = numpy.array(_price, numpy.double)
             _quantity = numpy.array(_quantity, numpy.double)
 
-            data = TradeData()
+            data = ApiData()
             data.value_open = _price[0]
             data.value_close = _price[-1:]
             data.value_mean_quantity = numpy.sum(_price * _quantity) / numpy.sum(_quantity)
@@ -78,22 +75,28 @@ class TradeApi(object):
 
         return None
 
-    def create_buy_order(self, quantity=100):
+    def create_buy_order(self):
 
         _ret = self.binance_api.create_order(
-            symbol=self.symbol,
+            symbol=GloVar.get("trade_symbol"),
             side=binance.client.Client.SIDE_BUY,
             type=binance.client.Client.ORDER_TYPE_MARKET,
-            quantity=quantity)
+            quantity=GloVar.get("trade_quantity"))
 
         print(_ret)
 
-    def create_sell_order(self, quantity=100):
+    def create_sell_order(self):
 
         _ret = self.binance_api.create_order(
-            symbol=self.symbol,
+            symbol=GloVar.get("trade_symbol"),
             side=binance.client.Client.SIDE_SELL,
             type=binance.client.Client.ORDER_TYPE_MARKET,
-            quantity=quantity)
+            quantity=GloVar.get("trade_quantity"))
 
         print(_ret)
+
+if __name__ == "__main__":
+    api = Api("../data/config.xml")
+    print(api.getTradeData(int(time.time() * 1000 - 10000), endTime=int(time.time() * 1000)))
+    # api.create_buy_order()
+    # api.create_sell_order()
