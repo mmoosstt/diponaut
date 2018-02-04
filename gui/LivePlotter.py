@@ -28,7 +28,7 @@ class TraidingWidget(PySide.QtGui.QWidget):
 
     def __init__(self, parent=None, simulation=True, update_rate_trade_data=10, update_rate_plotting=10, update_rate_save_data=100):
         PySide.QtGui.QWidget.__init__(self, parent)
-        self.simulation = True
+        self.simulation = simulation
         self.GroundControl = GroundControl(self.simulation)
         self.GroundControl.load_config()
 
@@ -51,15 +51,12 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.qtimer3.setSingleShot(True)
         self.qtimer3.timeout.connect(self.timeout_sync_x_aches)
 
+
     def updateTradeData(self):
         self.GroundControl.update()
-
-        if self.save_counter_z > self.save_counter:
-            self.save_counter_z = 0
+        if not self.simulation:
             self.GroundControl.save()
-        else:
-            self.save_counter_z += 1
-
+            
     def createPlotInterface(self):
 
         def mySetSymbol(w, s):

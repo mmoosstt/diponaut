@@ -23,7 +23,7 @@ class GroundControl(object):
             self.state = logic.TradeStates.States("./data_sim/{0}-{1}s-states.hdf".format(self.symbol, self.trade_cycle_time))
 
         else:
-            self.api = logic.TradeApiSim.Api("./data/{0}-{1}s-sim.hdf".format(self.symbol, self.trade_cycle_time))
+            self.api = logic.TradeApi.Api("./data/config.xml")
             self.logger = logic.TradeLogger.Logger("./data/{0}-{1}s-logger.hdf".format(self.symbol, self.trade_cycle_time))
             self.prediction = logic.TradePrediction.Prediction("./data/{0}-{1}s-prediction.hdf".format(self.symbol, self.trade_cycle_time))
             self.state = logic.TradeStates.States("./data/{0}-{1}s-states.hdf".format(self.symbol, self.trade_cycle_time))
