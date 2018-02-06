@@ -101,7 +101,7 @@ class States(object):
 
             self.state = "week_buy"
             self.price_week = prediction_data.event_price
-            #GloVar.set("filt1_hz", 0.05)
+            GloVar.set("filt1_hz", 0.025)
 
         elif (self.state == "week_buy" and
               (prediction_data.event_zc == True and prediction_data.event_buy == True)):
@@ -115,7 +115,7 @@ class States(object):
             GloVar.set("state_buy_time", prediction_data.event_time)
             GloVar.set("state_sell_lost_limit", prediction_data.event_price * 0.925)
             GloVar.set("state_sell_win_limit", prediction_data.event_price * 1.025)
-            #GloVar.set("filt1_hz", 0.01)
+            GloVar.set("filt1_hz", 0.01)
 
         elif (self.state == "stro_buy" and prediction_data.event_price < GloVar.get("state_sell_lost_limit")):
             self.state = "sell_now_stop_lost"
@@ -127,7 +127,7 @@ class States(object):
               prediction_data.event_sell == True):
             self.state = "week_sell"
             self.price_week = prediction_data.event_price
-            #GloVar.set("filt1_hz", 0.05)
+            GloVar.set("filt1_hz", 0.025)
 
         elif (self.state == "week_sell" and
               (prediction_data.event_zc == True or
@@ -154,7 +154,7 @@ class States(object):
             GloVar.set("state_sell_price", prediction_data.event_price)
             GloVar.set("state_sell_time", prediction_data.event_time)
             GloVar.set("order_delta_price", self.events_sell[-1:][0] - self.events_buy[-1:][0])
-            #GloVar.set("filt1_hz", 0.01)
+            GloVar.set("filt1_hz", 0.01)
 
         if self.state != self.state_z:
             self.state_z = self.state

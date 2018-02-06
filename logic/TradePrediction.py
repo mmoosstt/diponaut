@@ -103,6 +103,9 @@ class Prediction(PySide.QtCore.QObject):
         _trades_err = (self.trades_filt1 - self.trades_filt2)
         numpy.copyto(self.trades_err, _trades_err)
 
+        b, a = scipy.signal.butter(2, 0.001)
+        self.trades_err_filt = scipy.diff((self.trades_err, self.trades_time), axis=1)[0]
+
         # steigung trades error
         _trades_err_diff = scipy.diff(_trades_err)
 
@@ -111,33 +114,18 @@ class Prediction(PySide.QtCore.QObject):
         _trades_err_diff_zc_value = _trades_err_diff_zc * self.trades_err[1:-1]
         numpy.copyto(self.trades_err_diff_zc[2:], _trades_err_diff_zc_value)
 
-        # weighted limits factor
-        _trades_filt2_diff_rel = self.trades_filt2_diff / (numpy.max(self.trades_filt2_diff) - numpy.min(self.trades_filt2_diff))
+        # calculate buy and sell limits
+        _v = numpy.mean(self.trades_filt2[-11:-1])
 
-        GloVar.set('filt2_grad_max', max(_trades_filt2_diff_rel))
-        GloVar.set('filt2_grad_min', min(_trades_filt2_diff_rel))
-
-        _trades_filt2_diff_rel_actual = numpy.mean(_trades_filt2_diff_rel[-1 * int(GloVar.get("filt2_grad_range")):]) / int(GloVar.get("filt2_grad_range"))
-
-        # calc buy and sell limits
-        _trade_level_sell = self.trades_err_diff_zc[scipy.where(self.trades_err_diff_zc > 0)]
-        _trade_level_sell = numpy.mean(_trade_level_sell) * GloVar.get("factor_sell_fix")
+        # min +- 0.2 %
+        _trade_level_buy = _v * ((100 - max(0.2, GloVar.get("factor_buy_offset"))) / 100.) - _v
+        _trade_level_sell = _v * ((100 + max(0.2, GloVar.get("factor_sell_offset"))) / 100.) - _v
 
         numpy.copyto(self.trades_sell[:-1], self.trades_sell[1:])
         self.trades_sell[len(self.trades_sell) - 1] = _trade_level_sell
 
-        _trade_level_buy = self.trades_err_diff_zc[scipy.where(self.trades_err_diff_zc < 0)]
-        _trade_level_buy = numpy.mean(_trade_level_buy) * GloVar.get("factor_buy_fix")
-
         numpy.copyto(self.trades_buy[:-1], self.trades_buy[1:])
         self.trades_buy[len(self.trades_buy) - 1] = _trade_level_buy
-
-        def update_array(ring, event, price):
-
-            if event:
-                ring[len(self.trades_buy) - 1] = price
-            else:
-                ring[len(self.trades_buy) - 1] = numpy.NaN
 
         pdata = PredictionData()
         pdata.event_price = numpy.mean(self.trades_raw[-6:-1])
