@@ -9,7 +9,7 @@
 
 # Screenshot
 
-![screenshot](diponaut/config/screenshot.png)
+![screenshot](https://raw.githubusercontent.com/mmoosstt/diponaut/master/config/screenshot.png)
 
 -#crypto
 -#bot
