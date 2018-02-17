@@ -42,12 +42,14 @@ class GlobalVariables(PySide.QtGui.QWidget):
             if isinstance(_obj, utils.Interfaces.IVariable):
 
                 print(_obj.type, _name)
-                layout.addWidget(PySide.QtGui.QLabel(_name, self), row, col)
-                self.__dict__["Q{0}".format(_name)] = myLineEdit(self, _name)
-                layout.addWidget(self.__dict__["Q{0}".format(_name)], row, col + 1)
-                self.__dict__["C{0}".format(_name)] = lambda name, value: self.GloVar.set(name, value)
-                self.__dict__["Q{0}".format(_name)].valueChanged.connect(self.__dict__["C{0}".format(_name)])
-                row += 1
+
+                if _obj.protected == False:
+                    layout.addWidget(PySide.QtGui.QLabel(_name, self), row, col)
+                    self.__dict__["Q{0}".format(_name)] = myLineEdit(self, _name)
+                    layout.addWidget(self.__dict__["Q{0}".format(_name)], row, col + 1)
+                    self.__dict__["C{0}".format(_name)] = lambda name, value: self.GloVar.set(name, value)
+                    self.__dict__["Q{0}".format(_name)].valueChanged.connect(self.__dict__["C{0}".format(_name)])
+                    row += 1
 
         self.setLayout(layout)
 

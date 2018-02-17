@@ -3,9 +3,9 @@ from pyqtgraph.pgcollections import protect
 
 GloVar = utils.Interfaces.IVariables()
 
-GloVar.path_storage = utils.Interfaces.IVariable(value="../data_storage", type=str, protect=True)
-GloVar.path_temp = utils.Interfaces.IVariable(value="../data_temp", type=str, protect=True)
-GloVar.path_config = utils.Interfaces.IVariable(value="../config", type=str, protect=True)
+GloVar.path_storage = utils.Interfaces.IVariable(value="./data_storage", type=str, protected=True)
+GloVar.path_temp = utils.Interfaces.IVariable(value="./data_temp", type=str, protected=True)
+GloVar.path_config = utils.Interfaces.IVariable(value="./config", type=str, protected=True)
 
 GloVar.trade_symbol = utils.Interfaces.IVariable(value="TRXETH", type=str, protected=False)
 GloVar.trade_cycle_time = utils.Interfaces.IVariable(value=10, type=int, protected=False)
@@ -22,7 +22,7 @@ GloVar.filt2_hz = utils.Interfaces.IVariable(value=0.001, type=float)
 GloVar.filt2_grad_range = utils.Interfaces.IVariable(value=300, type=int)
 GloVar.filt2_grad = utils.Interfaces.IVariable(value=0., type=float)
 
-GloVar.state = utils.Interfaces.IVariable(value="undef", type=str)
+GloVar.state = utils.Interfaces.IVariable(value="DoNothing", type=str)
 GloVar.state_buy_time = utils.Interfaces.IVariable(value=0., type=int)
 GloVar.state_buy_price = utils.Interfaces.IVariable(value=0., type=float)
 GloVar.state_sell_time = utils.Interfaces.IVariable(value=0, type=int)

@@ -15,8 +15,8 @@ class States(object):
 
     def __init__(self, file_path):
         self.ring_data_filepath = file_path
-        self.state = "start"
-        self.state_z = "None"
+        self.state = GloVar.get("state")
+        self.state_z = GloVar.get("state")
         self.zc_cnt = 0
         self.ring_size = int(60 * 60 * 24 / GloVar.get("trade_cycle_time"))
         self.events_buy = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)

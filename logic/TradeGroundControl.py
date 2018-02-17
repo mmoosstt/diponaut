@@ -68,8 +68,8 @@ class FilePathes(object):
         self.path_temp = GloVar.get("path_temp")
         self.path_config = GloVar.get("path_config")
 
-        if not os.path.isdir(self._path_temp):
-            os.makedirs(self._path_temp)
+        if not os.path.isdir(self.path_temp):
+            os.makedirs(self.path_temp)
 
         self.file_path_config = "{0}/{1}".format(self.path_config, "config.xml")
         self.file_path_sim = "{0}/{1}".format(self.path_temp, FileName.create_new_file_id("sim"))
