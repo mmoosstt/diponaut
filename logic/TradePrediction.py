@@ -59,7 +59,11 @@ class Prediction(PySide.QtCore.QObject):
         self.trades_sell = numpy.array(_f['trades_sell'], dtype=numpy.double)
         _f.close()
 
-    def save_storage(self):
+    def save_storage(self, file_path=None):
+
+        if file_path != None:
+            self.ring_data_filepath = file_path
+
         _f = h5py.File(self.ring_data_filepath, 'w')
         _f.create_dataset('trades_time', data=self.trades_time)
         _f.create_dataset('trades_median', data=self.trades_median)

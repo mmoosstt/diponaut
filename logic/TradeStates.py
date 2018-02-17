@@ -45,7 +45,11 @@ class States(object):
         self.events_zc_time = numpy.array(_f['events_zc_time'], dtype=numpy.double)
         _f.close()
 
-    def save_storage(self):
+    def save_storage(self, file_path):
+
+        if file_path != None:
+            self.ring_data_filepath = file_path
+
         _f = h5py.File(self.ring_data_filepath, 'w')
         _f.create_dataset('events_buy', data=self.events_buy)
         _f.create_dataset('events_buy_time', data=self.events_buy_time)

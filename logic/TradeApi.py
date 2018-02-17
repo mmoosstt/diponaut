@@ -96,6 +96,7 @@ class Api(object):
         print(_ret)
 
 if __name__ == "__main__":
+    GloVar.set("trade_symbol", "TRXETH")
     api = Api("../data/config.xml")
     print(api.getTradeData(int(time.time() * 1000 - 10000), endTime=int(time.time() * 1000)))
     # api.create_buy_order()

@@ -49,7 +49,11 @@ class Logger(object):
         self.ring_pos = int(_f['ring_pos'].value)
         _f.close()
 
-    def save_storage(self):
+    def save_storage(self, file_path=None):
+
+        if file_path != None:
+            self.ring_data_filepath = file_path
+
         _f = h5py.File(self.ring_data_filepath, 'w')
         _f.create_dataset('ring_trades_count', data=self.ring_trades_count)
         _f.create_dataset('ring_trades_time', data=self.ring_trades_time)
