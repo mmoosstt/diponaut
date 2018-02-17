@@ -9,7 +9,7 @@
 
 # Screenshot
 
-![alt text](https://github.com/mmoosstt/diponaut/tree/master/config/screenshot.png)
+![screenshot](https://github.com/mmoosstt/diponaut/blob/master/config/screenshot.png)
 
 
 -#crypto
