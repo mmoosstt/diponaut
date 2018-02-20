@@ -45,7 +45,7 @@ class States(object):
         self.events_zc_time = numpy.array(_f['events_zc_time'], dtype=numpy.double)
         _f.close()
 
-    def save_storage(self, file_path):
+    def save_storage(self, file_path=None):
 
         if file_path != None:
             self.ring_data_filepath = file_path
@@ -69,6 +69,15 @@ class States(object):
             if event:
                 numpy.copyto(events_arr[:-1], events_arr[1:])
                 events_arr[len(events_arr) - 1] = value
+
+        if (GloVar.get("state") == "START"):
+            GloVar.set("state", "start")
+            self.state = "start"
+
+        if (GloVar.get("state") == "STOP"):
+            GloVar.set("state", "STOPPED")
+            self.state = "STOPPED"
+            self.state_z = "STOPPED"
 
         if self.state == "week_buy":
             self.week_buy_cnt += 1
@@ -135,18 +144,16 @@ class States(object):
 
         elif (self.state == "week_sell" and
               (prediction_data.event_zc == True or
-               (prediction_data.event_sell == False and self.week_sell_cnt >= 6)
-               )
+               (prediction_data.event_sell == False and self.week_sell_cnt >= 6))
               ):
 
             self.state = "sell_now_zero_crossing"
 
-        if self.state != self.state_z:
+        if (self.state != self.state_z):
+            GloVar.set("state", self.state)
             self.state_z = self.state
 
             print(self.state, time.ctime(time.time()), prediction_data.event_price)
-
-            GloVar.set("state", self.state)
 
         if (self.state.startswith("sell_now")):
             self.state = "stro_sell"
@@ -160,9 +167,8 @@ class States(object):
             GloVar.set("order_delta_price", self.events_sell[-1:][0] - self.events_buy[-1:][0])
             GloVar.set("filt1_hz", 0.01)
 
-        if self.state != self.state_z:
+        if (self.state != self.state_z):
+            GloVar.set("state", self.state)
             self.state_z = self.state
 
             print(self.state, time.ctime(time.time()), prediction_data.event_price)
-
-            GloVar.set("state", self.state)

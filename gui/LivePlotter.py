@@ -51,12 +51,15 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.qtimer3.setSingleShot(True)
         self.qtimer3.timeout.connect(self.timeout_sync_x_aches)
 
-
     def updateTradeData(self):
-        self.GroundControl.update()
-        if not self.simulation:
+        _changed = self.GroundControl.update()
+
+        if _changed:
+            self.updatePlotInterface()
+
+        if not self.simulation and _changed == False:
             self.GroundControl.save()
-            
+
     def createPlotInterface(self):
 
         def mySetSymbol(w, s):
@@ -133,6 +136,38 @@ class TraidingWidget(PySide.QtGui.QWidget):
 
             for _curve_key in sorted(self.plotWidgets[_plot_key]["curves"]):
                 _legend.addItem(self.plotWidgets[_plot_key]["curves"][_curve_key]["widget"], name=_curve_key)
+
+    def updatePlotInterface(self):
+
+        self.plotWidgets["plot1"]["curves"]["value_mean"]["x"] = self.GroundControl.logger.ring_trades_time
+        self.plotWidgets["plot1"]["curves"]["value_mean"]["y"] = self.GroundControl.logger.ring_value_mean_quantity
+
+        self.plotWidgets["plot1"]["curves"]["value_flit1"]["x"] = self.GroundControl.prediction.trades_time
+        self.plotWidgets["plot1"]["curves"]["value_flit1"]["y"] = self.GroundControl.prediction.trades_filt1
+
+        self.plotWidgets["plot1"]["curves"]["value_filt2"]["x"] = self.GroundControl.prediction.trades_time
+        self.plotWidgets["plot1"]["curves"]["value_filt2"]["y"] = self.GroundControl.prediction.trades_filt2
+
+        self.plotWidgets["plot1"]["curves"]["events_buy"]["x"] = self.GroundControl.state.events_buy_time
+        self.plotWidgets["plot1"]["curves"]["events_buy"]["y"] = self.GroundControl.state.events_buy
+
+        self.plotWidgets["plot1"]["curves"]["events_sell"]["x"] = self.GroundControl.state.events_sell_time
+        self.plotWidgets["plot1"]["curves"]["events_sell"]["y"] = self.GroundControl.state.events_sell
+
+        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["x"] = self.GroundControl.state.events_zc_time
+        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["y"] = self.GroundControl.state.events_zc
+
+        self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["x"] = self.GroundControl.prediction.trades_time
+        self.plotWidgets["plot2"]["curves"]["filt1-filt2"]["y"] = self.GroundControl.prediction.trades_err
+
+        self.plotWidgets["plot2"]["curves"]["trades_buy"]["x"] = self.GroundControl.prediction.trades_time
+        self.plotWidgets["plot2"]["curves"]["trades_buy"]["y"] = self.GroundControl.prediction.trades_buy
+
+        self.plotWidgets["plot2"]["curves"]["trades_sell"]["x"] = self.GroundControl.prediction.trades_time
+        self.plotWidgets["plot2"]["curves"]["trades_sell"]["y"] = self.GroundControl.prediction.trades_sell
+
+        self.plotWidgets["plot3"]["curves"]["ring_trades_count"]["x"] = self.GroundControl.logger.ring_trades_time
+        self.plotWidgets["plot3"]["curves"]["ring_trades_count"]["y"] = self.GroundControl.logger.ring_trades_count
 
     def event_sync_x_aches(self, widget, cords):
         self._store_cords = cords
