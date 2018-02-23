@@ -76,15 +76,14 @@ class Prediction(PySide.QtCore.QObject):
 
     def update(self, logger):
 
-        _dummy = numpy.concatenate((logger.ring_trades_time[logger.ring_pos:],
-                                    logger.ring_trades_time[:logger.ring_pos]))
+        _trades_time = numpy.concatenate((logger.ring_trades_time[logger.ring_pos:],
+                                          logger.ring_trades_time[:logger.ring_pos]))
+        numpy.copyto(self.trades_time, _trades_time)
 
-        numpy.copyto(self.trades_time, _dummy)
+        _trades_raw = numpy.concatenate((logger.ring_value_mean_quantity[logger.ring_pos:],
+                                         logger.ring_value_mean_quantity[:logger.ring_pos]))
 
-        _dummy = numpy.concatenate((logger.ring_value_mean_quantity[logger.ring_pos:],
-                                    logger.ring_value_mean_quantity[:logger.ring_pos]))
-
-        numpy.copyto(self.trades_raw, _dummy)
+        numpy.copyto(self.trades_raw, _trades_raw)
 
         # predic raising or fallin global tendencies
         b, a = scipy.signal.butter(2, GloVar.get("filt1_hz"))

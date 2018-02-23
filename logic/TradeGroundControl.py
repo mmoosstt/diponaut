@@ -96,14 +96,20 @@ class FilePathes(object):
         _path_config = GloVar.get("path_config")
 
         def _inline_update_pathes(old, new):
-            if old != new:
-                old = new
+
+            if old == new:
+
+                _return = old
+            else:
+
                 self.changed = True
 
-                if not os.path.isdir(old):
-                    os.makedirs(old)
+                if not os.path.isdir(new):
+                    os.makedirs(new)
 
-            return old
+                _return = new
+
+            return _return
 
         self.path_config = _inline_update_pathes(self.path_config, _path_config)
         self.path_storage = _inline_update_pathes(self.path_storage, _path_storage)
@@ -122,36 +128,44 @@ class FilePathes(object):
 
             else:
                 _return = new
-
                 self.changed = True
 
+                # distiguish between temp and sotrage necessary because of git and copy possiblilties during runntime
                 # copy latest from storge if new file does not exists
+                
                 if not os.path.isfile(new):
 
                     _file_match1, _time_stamp1 = FileName.find_latest_file_id(self.path_storage)
                     _file_match2, _time_stamp2 = FileName.find_latest_file_id(self.path_temp)
 
+                    # for code robustness
+                    _match = False
+
+                    # ToDo: CleanUp
+                    # file only in storage path
                     if isinstance(_file_match1, dict) and _file_match2 == False:
                         _match = _file_match1
                         _path = self.path_storage
 
+                    # file only in temp path
                     elif isinstance(_file_match2, dict) and _file_match1 == False:
                         _match = _file_match2
                         _path = self.path_temp
 
+                    # No File Fond
                     elif _file_match2 == False and _file_match1 == False:
                         _match = False
                         _path = False
 
+                    # file in temp folder newer than in storage folder
                     elif _time_stamp2 > _time_stamp1:
                         _match = _file_match2
                         _path = self.path_temp
-                        print('copy from temp path')
 
+                    # file of storage folder found
                     else:
                         _match = _file_match1
                         _path = self.path_storage
-                        print("copy from storage path")
 
                     if _match != False:
                         _match["file_key"] = file_key
