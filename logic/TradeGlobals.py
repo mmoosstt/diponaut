@@ -36,6 +36,8 @@ GloVar.state_sell_win_limit = utils.Interfaces.IVariable(value=1.4e10, type=floa
 
 GloVar.order_delta_price = utils.Interfaces.IVariable(value=0., type=float)
 
+GloVar.SaveTimeOffset = utils.Interfaces.IVariable(value=0.0, type=float, protected=True)
+
 
 def _loadArguments(args):
     """
