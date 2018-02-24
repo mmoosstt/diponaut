@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import scipy
 import scipy.signal
 
+# play ground development of fft analysis
+
 np = numpy
 
 if __name__ == "__main__":
