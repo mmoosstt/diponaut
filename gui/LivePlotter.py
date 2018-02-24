@@ -15,7 +15,13 @@ class TimeAxisItem(pyqtgraph.AxisItem):
 
         _t_str = []
         for _v in values:
-            _t = time.gmtime(_v)
+            try:
+                _t = time.gmtime(_v)
+
+            except:
+                print(_v, type(_v))
+                _t = time.gmtime(time.time())
+
             _s = "{0:02}:{1:02}:{2:02}".format(_t.tm_hour, _t.tm_min, _t.tm_sec)
             _t_str.append(_s)
 

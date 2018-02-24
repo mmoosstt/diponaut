@@ -13,8 +13,12 @@ import shutil
 class FileName(object):
 
     @staticmethod
+    def offset_time():
+        return time.time() + GloVar.get("SaveTimeOffset")
+
+    @staticmethod
     def create_new_file_id(key):
-        _t = time.gmtime()
+        _t = time.gmtime(FileName.offset_time())
         return "{3}_{0:02d}_{1:02d}_{2:02d}_{4}s-{5}.hdf".format(_t.tm_year,
                                                                  _t.tm_mon,
                                                                  _t.tm_mday,
@@ -39,7 +43,7 @@ class FileName(object):
         return _r
 
     @staticmethod
-    def find_latest_file_id(path):
+    def find_latest_file_id(path, file_key):
 
         _results = {}
         for _path, _folder, _files in os.walk(path):
@@ -50,7 +54,8 @@ class FileName(object):
                 if _m_dict:
 
                     if (_m_dict['symbol'] == GloVar.get("trade_symbol") and
-                            int(_m_dict['cycle_time']) == GloVar.get("trade_cycle_time")):
+                            int(_m_dict['cycle_time']) == GloVar.get("trade_cycle_time") and
+                            _m_dict['file_key'] == file_key):
 
                         _year = int(_m_dict['year'])
                         _mon = int(_m_dict['mon'])
@@ -132,50 +137,48 @@ class FilePathes(object):
 
                 # distiguish between temp and sotrage necessary because of git and copy possiblilties during runntime
                 # copy latest from storge if new file does not exists
-                
-                if not os.path.isfile(new):
 
-                    _file_match1, _time_stamp1 = FileName.find_latest_file_id(self.path_storage)
-                    _file_match2, _time_stamp2 = FileName.find_latest_file_id(self.path_temp)
+                _file_match1, _time_stamp1 = FileName.find_latest_file_id(self.path_storage, file_key)
+                _file_match2, _time_stamp2 = FileName.find_latest_file_id(self.path_temp, file_key)
 
-                    # for code robustness
+                # for code robustness
+                _match = False
+
+                # ToDo: CleanUp
+                # file only in storage path
+                if isinstance(_file_match1, dict) and _file_match2 == False:
+                    _match = _file_match1
+                    _path = self.path_storage
+
+                # file only in temp path
+                elif isinstance(_file_match2, dict) and _file_match1 == False:
+                    _match = _file_match2
+                    _path = self.path_temp
+
+                # No File Fond
+                elif _file_match2 == False and _file_match1 == False:
                     _match = False
+                    _path = False
 
-                    # ToDo: CleanUp
-                    # file only in storage path
-                    if isinstance(_file_match1, dict) and _file_match2 == False:
-                        _match = _file_match1
-                        _path = self.path_storage
+                # file in temp folder newer than in storage folder
+                elif _time_stamp2 > _time_stamp1:
+                    _match = _file_match2
+                    _path = self.path_temp
 
-                    # file only in temp path
-                    elif isinstance(_file_match2, dict) and _file_match1 == False:
-                        _match = _file_match2
-                        _path = self.path_temp
+                # file of storage folder found
+                else:
+                    _match = _file_match1
+                    _path = self.path_storage
 
-                    # No File Fond
-                    elif _file_match2 == False and _file_match1 == False:
-                        _match = False
-                        _path = False
+                if _match != False:
+                    _match["file_key"] = file_key
+                    _storage_path = "{0}/{1}".format(_path, FileName.create_file_id(_match))
 
-                    # file in temp folder newer than in storage folder
-                    elif _time_stamp2 > _time_stamp1:
-                        _match = _file_match2
-                        _path = self.path_temp
-
-                    # file of storage folder found
-                    else:
-                        _match = _file_match1
-                        _path = self.path_storage
-
-                    if _match != False:
-                        _match["file_key"] = file_key
-                        _storage_path = "{0}/{1}".format(_path, FileName.create_file_id(_match))
-
-                        if os.path.isfile(_storage_path):
-                            try:
-                                shutil.copy(_storage_path, new)
-                            except shutil.SameFileError:
-                                pass
+                    if os.path.isfile(_storage_path):
+                        try:
+                            shutil.copy(_storage_path, new)
+                        except shutil.SameFileError:
+                            pass
 
             return _return
 

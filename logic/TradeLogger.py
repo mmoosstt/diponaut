@@ -88,16 +88,15 @@ class Logger(object):
         if _trade != None:
             self.time_last_update = _endTime
 
+            self.ring_pos = self.ring_pos + 1
+            if self.ring_pos == self.ring_size:
+                self.ring_pos = 0
+
             self.ring_trades_count[self.ring_pos] = _trade.trades_count
             self.ring_trades_time[self.ring_pos] = _trade.trades_time
             self.ring_value_close[self.ring_pos] = _trade.value_close
             self.ring_value_max[self.ring_pos] = _trade.value_max
             self.ring_value_min[self.ring_pos] = _trade.value_min
-            self.ring_value_mean_quantity[
-                self.ring_pos] = _trade.value_mean_quantity
+            self.ring_value_mean_quantity[self.ring_pos] = _trade.value_mean_quantity
             self.ring_value_open[self.ring_pos] = _trade.value_open
             self.ring_quantity[self.ring_pos] = _trade.quantity
-
-            self.ring_pos = self.ring_pos + 1
-            if self.ring_pos == self.ring_size:
-                self.ring_pos = 0

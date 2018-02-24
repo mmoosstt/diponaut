@@ -1,5 +1,5 @@
 import utils.Interfaces
-from pyqtgraph.pgcollections import protect
+import re
 
 GloVar = utils.Interfaces.IVariables()
 
@@ -35,6 +35,33 @@ GloVar.state_sell_win_limit = utils.Interfaces.IVariable(value=1.4e10, type=floa
 
 
 GloVar.order_delta_price = utils.Interfaces.IVariable(value=0., type=float)
+
+
+def _loadArguments(args):
+    """
+    analys argv with out own signal name
+    structure of arguments -<GloVarName>:<GloVarValue>
+    example:
+    python.exe diponaut.py -trade_symbol:TRXETH
+
+    """
+
+    for arg in args:
+
+        _res = re.findall("-(.*):(.*)", arg)
+
+        if _res != []:
+            if len(_res[0]) == 2:
+
+                GloVarName = _res[0][0]
+                GloVarValue = _res[0][1]
+
+                if GloVarName in GloVar.__dict__.keys():
+                    GloVar.set(GloVarName, GloVarValue)
+                    print("GloVar.set(%s,%s)".format(GloVarName, GloVarValue))
+
+
+GloVar.loadArguments = _loadArguments
 
 
 if __name__ == "__main__":
