@@ -37,18 +37,18 @@ class FileName(object):
                                                                  match_dict['file_key'])
 
     @staticmethod
-    def find_file_id(input):
+    def find_file_id_in_str(str_input):
         _c = re.compile("(?P<symbol>[A-Z]*)_(?P<year>[0-9]{2,4})_(?P<mon>[0-9]{2,4})_(?P<day>[0-9]{2,4})_(?P<cycle_time>[0-9]{1,3})s-(?P<file_key>[a-z]*)\.?")
-        _r = _c.search(input)
+        _r = _c.search(str_input)
         return _r
 
     @staticmethod
-    def find_latest_file_id(path, file_key):
+    def find_file_ids(path, file_key):
 
         _results = {}
         for _path, _folder, _files in os.walk(path):
             for _file in _files:
-                _m = FileName.find_file_id(_file)
+                _m = FileName.find_file_id_in_str(_file)
                 _m_dict = _m.groupdict()
 
                 if _m_dict:
@@ -64,17 +64,23 @@ class FileName(object):
                         _val = int(_str, 10)
                         _results[_val] = _m_dict
 
-        _result_key = sorted(_results.keys())
+        return _results
 
-        if _result_key != []:
-            _result_key = _result_key[-1:][0]
-            _return = _results[_result_key]
+    @staticmethod
+    def find_latest_file_id(path, file_key):
+
+        _file_ids = FileName.find_file_ids(path, file_key)
+        _file_ids_key = sorted(_file_ids.keys())
+
+        if _file_ids_key != []:
+            _file_ids_key = _file_ids_key[-1:][0]
+            _return = _file_ids[_file_ids_key]
 
         else:
-            _return_key = False
+            _file_ids_key = False
             _return = False
 
-        return _return, _result_key
+        return _return, _file_ids_key
 
 
 class FilePathes(object):

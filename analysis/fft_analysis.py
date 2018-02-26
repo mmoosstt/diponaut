@@ -4,6 +4,8 @@ import numpy
 import matplotlib.pyplot as plt
 import scipy
 import scipy.signal
+import logic.TradeGroundControl as TradeGroundControl
+from logic.TradeGlobals import GloVar
 
 # play ground development of fft analysis
 
@@ -11,31 +13,61 @@ np = numpy
 
 if __name__ == "__main__":
     os.chdir(os.path.abspath("../"))
-    _path = "./data_storage/XVGETH/XVGETH_2018_02_22_10s-logger.hdf"
 
-    _l = tl.Logger(_path)
+    symbols = ["XVGETH", "BNBETH", "TRXETH"]
 
-    _x = numpy.concatenate((_l.ring_trades_time[_l.ring_pos:], _l.ring_trades_time[:_l.ring_pos]))
-    _y = numpy.concatenate((_l.ring_value_mean_quantity[_l.ring_pos:], _l.ring_value_mean_quantity[:_l.ring_pos]))
+    for symbol in symbols:
 
-    x = 1
+        GloVar.set("trade_symbol", symbol)
 
-    _b, _a = scipy.signal.butter(2, 0.05)
-    _y, _x = scipy.signal.filtfilt(_b, _a, (_y, _x), axis=1)
+        _path = "./data_storage/{0}".format(symbol)
 
-    t = _x
-    sp = np.fft.fft(_y)
-    freq = np.fft.fftfreq(_x.shape[-1], d=10)
-    plt.plot(freq, abs(sp))
-    plt.show()
+        _res = TradeGroundControl.FileName.find_file_ids(_path, 'logger')
 
-    N = _x.shape[-1]
-    # sample spacing
-    T = 1.0 / 10.
-    x = np.linspace(0.0, N * T, N)
-    y = _y
-    yf = scipy.fftpack.fft(y)
-    xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
+        _keys = sorted(_res.keys())
 
-    #plt.plot(_x, _y)
-    plt.savefig("dummy.png")
+        _X = numpy.array([], dtype=np.float)
+        _Y = numpy.array([], dtype=np.float)
+
+        for _key in _keys:
+
+            _match_dict = _res[_key]
+            _file_name = TradeGroundControl.FileName.create_file_id(_match_dict)
+
+            _file_path = "{0}/{1}".format(_path, _file_name)
+
+            _l = tl.Logger(_file_path)
+
+            _x = numpy.concatenate((_l.ring_trades_time[_l.ring_pos:], _l.ring_trades_time[:_l.ring_pos]))
+            _y = numpy.concatenate((_l.ring_value_mean_quantity[_l.ring_pos:], _l.ring_value_mean_quantity[:_l.ring_pos]))
+
+            _X = numpy.concatenate((_X, _x))
+            _Y = numpy.concatenate((_Y, _y))
+
+        plt.plot(_X, _Y)  # , freq, abs(sp))
+        plt.savefig("./data_storage/{0}_history.png".format(symbol))
+        plt.clf()
+
+        _Y2 = scipy.signal.resample(_Y, 5000, t=_X)
+        plt.plot(_Y2[1], _Y2[0])
+        plt.savefig("./data_storage/{0}_history_resampled.png".format(symbol))
+        plt.clf()
+
+        _b, _a = scipy.signal.butter(2, 0.05)  # T=20s shanon
+        _x, _y = scipy.signal.filtfilt(_b, _a, (_X, _Y), axis=1)
+
+        N = _x.shape[-1]
+        T = 10  # s
+        # sample spacing
+
+        _yf = np.absolute(np.fft.fft(_y))[1:int(N / 2)]
+        _xfreq = np.fft.fftfreq(N)[1:int(N / 2)]
+
+        _p = plt.semilogy(_xfreq, _yf)
+        plt.xlim((0, 0.05))
+        plt.savefig("./data_storage/{0}_fft.png".format(symbol))
+        plt.clf()
+
+        plt.hist(_yf, 100, (0, 0.05), log=True)
+        plt.savefig("./data_storage/{0}_fft_hist.png".format(symbol))
+        plt.clf()
