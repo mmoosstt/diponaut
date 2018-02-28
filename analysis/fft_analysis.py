@@ -6,6 +6,8 @@ import scipy
 import scipy.signal
 import logic.TradeGroundControl as TradeGroundControl
 from logic.TradeGlobals import GloVar
+import time
+from numpy import dtype
 
 # play ground development of fft analysis
 
@@ -29,6 +31,11 @@ if __name__ == "__main__":
         _X = numpy.array([], dtype=np.float)
         _Y = numpy.array([], dtype=np.float)
 
+        _min = -1e10
+        _max = 1e10
+
+        print(symbol)
+
         for _key in _keys:
 
             _match_dict = _res[_key]
@@ -41,20 +48,31 @@ if __name__ == "__main__":
             _x = numpy.concatenate((_l.ring_trades_time[_l.ring_pos:], _l.ring_trades_time[:_l.ring_pos]))
             _y = numpy.concatenate((_l.ring_value_mean_quantity[_l.ring_pos:], _l.ring_value_mean_quantity[:_l.ring_pos]))
 
+            # _x and _y value plausibilisation
+
+            _min = max(min(_x), _min)
+            _max = max(_x)
+
+            _true_arr = numpy.where(((_x < _max) & (_x > _min) & (_y > 1e-21) & (_y != np.nan) & (_x != np.nan)))
+            _x = _x[_true_arr]
+            _y = _y[_true_arr]
+
             _X = numpy.concatenate((_X, _x))
             _Y = numpy.concatenate((_Y, _y))
+
+            _min = _max + 10
 
         plt.plot(_X, _Y)  # , freq, abs(sp))
         plt.savefig("./data_storage/{0}_history.png".format(symbol))
         plt.clf()
 
-        _Y2 = scipy.signal.resample(_Y, 5000, t=_X)
-        plt.plot(_Y2[1], _Y2[0])
-        plt.savefig("./data_storage/{0}_history_resampled.png".format(symbol))
-        plt.clf()
+        if 0:  # no filtering
+            _b, _a = scipy.signal.butter(2, 0.5)  # T=20s shanon
+            _y, _x = scipy.signal.filtfilt(_b, _a, (_Y, _X), axis=1)
 
-        _b, _a = scipy.signal.butter(2, 0.05)  # T=20s shanon
-        _x, _y = scipy.signal.filtfilt(_b, _a, (_X, _Y), axis=1)
+            plt.plot(_x, _y)
+            plt.savefig("./data_storage/{0}_history_filtered.png".format(symbol))
+            plt.clf()
 
         N = _x.shape[-1]
         T = 10  # s
@@ -63,11 +81,12 @@ if __name__ == "__main__":
         _yf = np.absolute(np.fft.fft(_y))[1:int(N / 2)]
         _xfreq = np.fft.fftfreq(N)[1:int(N / 2)]
 
-        _p = plt.semilogy(_xfreq, _yf)
-        plt.xlim((0, 0.05))
-        plt.savefig("./data_storage/{0}_fft.png".format(symbol))
-        plt.clf()
+        if 0:
+            _p = plt.semilogy(_xfreq, _yf)
+            plt.xlim((0, 0.01))
+            plt.savefig("./data_storage/{0}_fft.png".format(symbol))
+            plt.clf()
 
-        plt.hist(_yf, 100, (0, 0.05), log=True)
+        plt.hist(_yf, 100, (0, 0.01))
         plt.savefig("./data_storage/{0}_fft_hist.png".format(symbol))
         plt.clf()
