@@ -167,7 +167,7 @@ class FilePathes(object):
                     _path = False
 
                 # file in temp folder newer than in storage folder
-                elif _time_stamp2 > _time_stamp1:
+                elif _time_stamp2 >= _time_stamp1:
                     _match = _file_match2
                     _path = self.path_temp
 
