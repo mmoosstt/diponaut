@@ -7,8 +7,11 @@ GloVar.path_storage = utils.Interfaces.IVariable(value="./data_storage", type=st
 GloVar.path_temp = utils.Interfaces.IVariable(value="./data_temp", type=str, protected=True)
 GloVar.path_config = utils.Interfaces.IVariable(value="./config", type=str, protected=True)
 
+
 GloVar.trade_symbol = utils.Interfaces.IVariable(value="TRXETH", type=str, protected=False)
 GloVar.trade_quantity = utils.Interfaces.IVariable(value=250, type=int, protected=True)
+GloVar.trade_simulation = utils.Interfaces.IVariable(value=False, type=bool, protected=True)
+GloVar.trade_sample_time = utils.Interfaces.IVariable(value=10., type=float, protected=True)
 
 GloVar.factor_buy_offset = utils.Interfaces.IVariable(value=2.01, type=float)
 GloVar.factor_sell_offset = utils.Interfaces.IVariable(value=0.99, type=float)
@@ -37,9 +40,9 @@ GloVar.order_delta_price = utils.Interfaces.IVariable(value=0., type=float)
 
 GloVar.SaveTimeOffset = utils.Interfaces.IVariable(value=0.0, type=float, protected=True)
 
-GloVar.cyclic_task_main = utils.Interfaces.IVariable(value=10., type=str, protected=True)
-GloVar.cyclic_task_plotting = utils.Interfaces.IVariable(value=30., type=str, protected=True)
-GloVar.cyclic_task_store = utils.Interfaces.IVariable(value=60., type=str, protected=True)
+GloVar.cyclic_task_main = utils.Interfaces.IVariable(value=10., type=float, protected=True)
+GloVar.cyclic_task_plotting = utils.Interfaces.IVariable(value=30., type=float, protected=True)
+GloVar.cyclic_task_store = utils.Interfaces.IVariable(value=60., type=float, protected=True)
 
 
 def _loadArguments(args):

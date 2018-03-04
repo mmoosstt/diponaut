@@ -23,7 +23,7 @@ class FileName(object):
                                                                  _t.tm_mon,
                                                                  _t.tm_mday,
                                                                  GloVar.get("trade_symbol"),
-                                                                 GloVar.get("cyclic_task_main"),
+                                                                 int(GloVar.get("trade_sample_time")),
                                                                  key)
 
     @staticmethod
@@ -54,7 +54,7 @@ class FileName(object):
                 if _m_dict:
 
                     if (_m_dict['symbol'] == GloVar.get("trade_symbol") and
-                            int(_m_dict['cycle_time']) == GloVar.get("cyclic_task_main") and
+                            int(_m_dict['cycle_time']) == GloVar.get("trade_sample_time") and
                             _m_dict['file_key'] == file_key):
 
                         _year = int(_m_dict['year'])
@@ -199,8 +199,8 @@ class FilePathes(object):
 
 class GroundControl(object):
 
-    def __init__(self, simulation=True):
-        self.simulation = simulation
+    def __init__(self):
+        self.simulation = GloVar.get("trade_simulation")
         self.files = FilePathes()
         self.changed = False
 
@@ -220,9 +220,10 @@ class GroundControl(object):
 
     def update(self):
 
-        self.changed = self.files.update()
-        if self.changed:
-            self.load_config()
+        if self.simulation == False:
+            self.changed = self.files.update()
+            if self.changed:
+                self.load_config()
 
         self.logger.update()
         self.prediction.update(self.logger)

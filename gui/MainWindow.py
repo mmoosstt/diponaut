@@ -6,12 +6,7 @@ from logic.TradeGlobals import GloVar
 
 class Main(PySide.QtGui.QWidget):
 
-    def __init__(self,
-                 parent=None,
-                 simulation=True,
-                 update_rate_trade_data=10,
-                 update_rate_plotting=10,
-                 update_rate_save_data=100):
+    def __init__(self, parent=None):
 
         PySide.QtGui.QWidget.__init__(self, parent)
 
@@ -19,7 +14,7 @@ class Main(PySide.QtGui.QWidget):
 
         self.layout.addWidget(gui.GlobalVariables.GlobalVariables(self), 1)
 
-        _w = gui.LivePlotter.TraidingWidget(self, simulation, update_rate_trade_data, update_rate_plotting, update_rate_save_data)
+        _w = gui.LivePlotter.TraidingWidget(self)
         self.layout.addWidget(_w, 4)
 
         self.setLayout(self.layout)

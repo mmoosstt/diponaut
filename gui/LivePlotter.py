@@ -4,6 +4,7 @@ import faulthandler
 faulthandler.enable()
 import time
 from logic.TradeGroundControl import GroundControl
+from logic.TradeGlobals import GloVar
 
 
 class TimeAxisItem(pyqtgraph.AxisItem):
@@ -32,30 +33,50 @@ class TraidingWidget(PySide.QtGui.QWidget):
 
     color_cnt = 1
 
-    def __init__(self, parent=None, simulation=True, update_rate_trade_data=10, update_rate_plotting=10, update_rate_save_data=100):
+    def __init__(self, parent=None):
         PySide.QtGui.QWidget.__init__(self, parent)
-        self.simulation = simulation
-        self.GroundControl = GroundControl(self.simulation)
+        self.GroundControl = GroundControl()
         self.GroundControl.load_config()
 
         self.layout = PySide.QtGui.QVBoxLayout(self)
 
         self.createPlotInterface()
         self.setLayout(self.layout)
-        self.qtimer = PySide.QtCore.QTimer()
-        self.qtimer.timeout.connect(self.updateTradeData)
-        self.qtimer.start(1000 * update_rate_trade_data)
 
-        self.save_counter = min(10, abs(int(update_rate_save_data / update_rate_trade_data)))
-        self.save_counter_z = 0
+        # init task timer
+        self.cyclic_task_timer_main = GloVar.get("cyclic_task_main") + time.time()
+        self.cyclic_task_timer_plotting = GloVar.get("cyclic_task_plotting") + time.time()
+        self.cyclic_task_timer_store = GloVar.get("cyclic_task_store") + time.time()
 
-        self.qtimer2 = PySide.QtCore.QTimer()
-        self.qtimer2.timeout.connect(self.updateTradePlots)
-        self.qtimer2.start(1000 * update_rate_plotting)
+        self.qtimer1 = PySide.QtCore.QTimer()
+        self.qtimer1.timeout.connect(self.CyclicTasks)
+        self.qtimer1.start(1000 * GloVar.get("cyclic_task_main"))
 
         self.qtimer3 = PySide.QtCore.QTimer()
         self.qtimer3.setSingleShot(True)
         self.qtimer3.timeout.connect(self.timeout_sync_x_aches)
+
+    def CyclicTasks(self):
+
+        # 1. priority
+        # update trade data
+        if self.cyclic_task_timer_main < time.time():
+            self.cyclic_task_timer_main = GloVar.get("cyclic_task_main") + time.time()
+            _changed = self.GroundControl.update()
+            if _changed:
+                self.updatePlotInterface()
+
+        # 2. priority
+        # sotre trade data
+        if self.cyclic_task_timer_store < time.time():
+            self.cyclic_task_timer_store = GloVar.get("cyclic_task_store") + time.time()
+            self.GroundControl.save()
+
+        # 3. priority
+        # update gui
+        if self.cyclic_task_timer_plotting < time.time():
+            self.cyclic_task_timer_plotting = GloVar.get("cyclic_task_plotting") + time.time()
+            self.updateTradePlots()
 
     def createPlotInterface(self):
 
@@ -182,28 +203,6 @@ class TraidingWidget(PySide.QtGui.QWidget):
         for _plot_key in sorted(self.plotWidgets.keys()):
             _widget = self.plotWidgets[_plot_key]["widget"]
             _widget.sigRangeChanged.connect(self.event_sync_x_aches)
-
-    def CyclicTasks(self):
-
-        # 1. priority
-        # update trade data
-
-        # 2. priority
-        # sotre trade data
-
-        # 3. priority
-        # update gui
-
-        pass
-
-    def updateTradeData(self):
-        _changed = self.GroundControl.update()
-
-        if _changed:
-            self.updatePlotInterface()
-
-        if not self.simulation and _changed == False:
-            self.GroundControl.save()
 
     def updateTradePlots(self):
 
