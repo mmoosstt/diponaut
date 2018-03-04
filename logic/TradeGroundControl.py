@@ -23,7 +23,7 @@ class FileName(object):
                                                                  _t.tm_mon,
                                                                  _t.tm_mday,
                                                                  GloVar.get("trade_symbol"),
-                                                                 GloVar.get("trade_cycle_time"),
+                                                                 GloVar.get("cyclic_task_main"),
                                                                  key)
 
     @staticmethod
@@ -54,7 +54,7 @@ class FileName(object):
                 if _m_dict:
 
                     if (_m_dict['symbol'] == GloVar.get("trade_symbol") and
-                            int(_m_dict['cycle_time']) == GloVar.get("trade_cycle_time") and
+                            int(_m_dict['cycle_time']) == GloVar.get("cyclic_task_main") and
                             _m_dict['file_key'] == file_key):
 
                         _year = int(_m_dict['year'])

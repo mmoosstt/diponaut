@@ -26,7 +26,7 @@ class Prediction(PySide.QtCore.QObject):
     def __init__(self, file_path="./data"):
         PySide.QtCore.QObject.__init__(self)
 
-        self.time_delta = GloVar.get("trade_cycle_time")  # s
+        self.time_delta = GloVar.get("cyclic_task_main")  # s
         self.ring_size = int(60 * 60 * 24 / self.time_delta)
         self.trades_time = numpy.array([0] * self.ring_size, dtype=numpy.double)
         self.trades_err_ana = numpy.array([0] * self.ring_size, dtype=numpy.double)

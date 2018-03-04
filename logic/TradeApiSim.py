@@ -40,7 +40,7 @@ class Api(object):
         data.trades_count = self._simulator.ring_trades_count[_pos]
         data.trades_time = self.start_time
 
-        self.start_time += GloVar.get("trade_cycle_time")
+        self.start_time += GloVar.get("cyclic_task_main")
 
         if int(self._simulator.ring_size - 1) == int(_pos):
             self._simulator.ring_pos = 0
@@ -61,7 +61,7 @@ class TradeSimulator(object):
     def __init__(self, file_path):
 
         _data = TradeData()
-        self.ring_size = int(60 * 60 * 24 / GloVar.get("trade_cycle_time"))
+        self.ring_size = int(60 * 60 * 24 / GloVar.get("cyclic_task_main"))
         self.ring_data_filepath = file_path
         self.ring_pos = int(0)
         self.ring_trades_count = numpy.array([_data.trades_count] * self.ring_size, dtype=numpy.int)

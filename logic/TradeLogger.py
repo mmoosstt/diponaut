@@ -14,7 +14,7 @@ class Logger(object):
 
     def __init__(self, file_path="./data/config.xml"):
         self.trade_interface = None
-        self.time_delta = GloVar.get("trade_cycle_time")
+        self.time_delta = GloVar.get("cyclic_task_main")
         self.time_last_update = 0
         self.ring_size = int(60 * 60 * 24 / self.time_delta)
         self.ring_data_filepath = file_path

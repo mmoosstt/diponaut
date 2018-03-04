@@ -57,15 +57,6 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.qtimer3.setSingleShot(True)
         self.qtimer3.timeout.connect(self.timeout_sync_x_aches)
 
-    def updateTradeData(self):
-        _changed = self.GroundControl.update()
-
-        if _changed:
-            self.updatePlotInterface()
-
-        if not self.simulation and _changed == False:
-            self.GroundControl.save()
-
     def createPlotInterface(self):
 
         def mySetSymbol(w, s):
@@ -191,6 +182,28 @@ class TraidingWidget(PySide.QtGui.QWidget):
         for _plot_key in sorted(self.plotWidgets.keys()):
             _widget = self.plotWidgets[_plot_key]["widget"]
             _widget.sigRangeChanged.connect(self.event_sync_x_aches)
+
+    def CyclicTasks(self):
+
+        # 1. priority
+        # update trade data
+
+        # 2. priority
+        # sotre trade data
+
+        # 3. priority
+        # update gui
+
+        pass
+
+    def updateTradeData(self):
+        _changed = self.GroundControl.update()
+
+        if _changed:
+            self.updatePlotInterface()
+
+        if not self.simulation and _changed == False:
+            self.GroundControl.save()
 
     def updateTradePlots(self):
 

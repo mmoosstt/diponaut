@@ -18,7 +18,7 @@ class States(object):
         self.state = GloVar.get("state")
         self.state_z = GloVar.get("state")
         self.zc_cnt = 0
-        self.ring_size = int(60 * 60 * 24 / GloVar.get("trade_cycle_time"))
+        self.ring_size = int(60 * 60 * 24 / GloVar.get("cyclic_task_main"))
         self.events_buy = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
         self.events_sell = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
         self.events_zc = numpy.array([numpy.NaN] * self.ring_size, dtype=numpy.double)
