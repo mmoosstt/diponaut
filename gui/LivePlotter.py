@@ -60,11 +60,9 @@ class TraidingWidget(PySide.QtGui.QWidget):
 
         # 1. priority
         # update trade data
-        if self.cyclic_task_timer_main < time.time():
-            self.cyclic_task_timer_main = GloVar.get("cyclic_task_main") + time.time()
-            _changed = self.GroundControl.update()
-            if _changed:
-                self.updatePlotInterface()
+        _changed = self.GroundControl.update()
+        if _changed:
+            self.updatePlotInterface()
 
         # 2. priority
         # sotre trade data

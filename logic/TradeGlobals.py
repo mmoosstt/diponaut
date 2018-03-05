@@ -66,7 +66,7 @@ def _loadArguments(args):
 
                 if GloVarName in GloVar.__dict__.keys():
                     GloVar.set(GloVarName, GloVarValue)
-                    print("GloVar.set(%s,%s)".format(GloVarName, GloVarValue))
+                    print(GloVarName, GloVarValue)
 
 
 GloVar.loadArguments = _loadArguments
