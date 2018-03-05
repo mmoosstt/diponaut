@@ -1,12 +1,15 @@
 import utils.Interfaces
 import re
+import time
 
 GloVar = utils.Interfaces.IVariables()
+
+GloVar.actual_price = utils.Interfaces.IVariable(value=0.0, type=float)
+GloVar.actual_time = utils.Interfaces.IVariable(value=time.strftime("%H:%M:%S"), type=str)
 
 GloVar.path_storage = utils.Interfaces.IVariable(value="./data_storage", type=str, protected=True)
 GloVar.path_temp = utils.Interfaces.IVariable(value="./data_temp", type=str, protected=True)
 GloVar.path_config = utils.Interfaces.IVariable(value="./config", type=str, protected=True)
-
 
 GloVar.trade_symbol = utils.Interfaces.IVariable(value="TRXETH", type=str, protected=False)
 GloVar.trade_quantity = utils.Interfaces.IVariable(value=250, type=int, protected=True)

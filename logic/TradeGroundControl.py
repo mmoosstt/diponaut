@@ -229,6 +229,9 @@ class GroundControl(object):
         self.prediction.update(self.logger)
         self.state.update(self.prediction.prediction)
 
+        GloVar.set("actual_price", self.prediction.prediction.event_price)
+        GloVar.set("actual_time", time.strftime("%H:%M:%S"))
+
         return self.changed
 
     def save(self):
