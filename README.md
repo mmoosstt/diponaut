@@ -17,3 +17,5 @@
 -#autotraiding
 -#simple
 -#diponaut
+-#binance
+-#binance-api
