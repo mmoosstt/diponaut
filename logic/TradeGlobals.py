@@ -2,6 +2,22 @@ import utils.Interfaces
 import re
 import time
 
+
+def boolean(value_str):
+    value_str = str(value_str).lower()
+
+    valid = {'true': True, 't': True, '1': True,
+             'false': False, 'f': False, '0': False
+             }
+
+    if value_str in valid.keys():
+        return valid[value_str]
+
+    else:
+        # default
+        return False
+
+
 GloVar = utils.Interfaces.IVariables()
 
 GloVar.actual_price = utils.Interfaces.IVariable(value=0.0, type=float)
@@ -13,7 +29,7 @@ GloVar.path_config = utils.Interfaces.IVariable(value="./config", type=str, prot
 
 GloVar.trade_symbol = utils.Interfaces.IVariable(value="TRXETH", type=str, protected=False)
 GloVar.trade_quantity = utils.Interfaces.IVariable(value=250, type=int, protected=True)
-GloVar.trade_simulation = utils.Interfaces.IVariable(value=False, type=bool, protected=True)
+GloVar.trade_simulation = utils.Interfaces.IVariable(value=False, type=boolean, protected=True)
 GloVar.trade_sample_time = utils.Interfaces.IVariable(value=10., type=float, protected=True)
 
 GloVar.factor_buy_offset = utils.Interfaces.IVariable(value=2.01, type=float)
