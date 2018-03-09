@@ -61,6 +61,13 @@ class States(object):
 
     def update(self, prediction_data):
 
+        #    prediction_data.event_price = numpy.mean(self.trades_raw[-6:-1])
+        #    prediction_data.event_buy = _trades_err[-1:][0] < _trade_level_buy
+        #    prediction_data.event_sell = _trades_err[-1:][0] > _trade_level_sell
+        #    prediction_data.event_zc = True in _trades_err_diff_zc[-20:]
+        #    prediction_data.event_rising = (self.trades_filt2_diff[-1:][0]) >= 0
+        #    prediction_data.event_time = self.trades_time[-1:][0]
+
         if self.trade_interface == None:
             raise TradeInterfaceNotInitialised
 
