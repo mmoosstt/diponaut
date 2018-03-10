@@ -4,83 +4,138 @@ class NotImplemented(Exception):
 
 
 class State:
-    pass
+
+    def __init__(self):
+        self.entry()
+
+    def execute(self):
+        pass
+
+    def entry(self):
+        print(self.__class__.__name__)
 
 
-class StateMachine(self):
+class Transition(object):
+
+    def __init__(self):
+        self._value = False
+
+    def __call__(self):
+        return self._value
+
+    def set(self, value):
+        self._value = value
+
+
+class Transitions(object):
+
+    def __init__(self):
+        self.buy = Transition()
+        self.sell = Transition()
+        self.turning_point = Transition()
+        self.bought = Transition()
+        self.sold = Transition()
+        self.start = Transition()
+        self.stop = Transition()
+
+
+class StateMachine(object):
 
     def __init__(self):
         self.current_state = BotIdle()
 
-    def next(self, events):
-        self.current_state = self.current_state.next(events)
+    def next(self, transitions):
+
+        self.current_state = self.current_state.next(transitions)
+        self.current_state.execute()
 
 
 class BotActive(State):
 
-    def next(self, events):
-        if events.sell():
-            return SellOrder()
+    def next(self, transitions):
+        if transitions.sell():
+            return SellAlert()
 
-        if events.buy():
-            return BuyOrder()
+        if transitions.buy():
+            return BuyAlert()
 
-        if events.stop():
+        if transitions.stop():
             return BotIdle()
 
-        return BotActive()
+        return self
 
 
 class BotIdle(State):
 
-    def next(self, events):
+    def next(self, transitions):
 
-        if events.start():
+        if transitions.start():
             return BotActive()
 
-        return BotIdle()
+        return self
 
 
 class BuyAlert(State):
 
-    def next(self, events):
+    def next(self, transitions):
 
-        if events.turning_point():
+        if transitions.turning_point():
             return BuyOrder()
 
-        if events.stop():
+        if transitions.stop():
             return BotIdle()
 
-        return BuyAlert()
+        return self
 
 
 class SellAlert(State):
 
-    def next(self, events):
-        if events.turning_point():
+    def next(self, transitions):
+        if transitions.turning_point():
             return SellOrder()
 
-        if events.stop():
+        if transitions.stop():
             return BotIdle()
 
-        return SellAlert()
+        return self
 
 
 class BuyOrder(State):
 
-    def next(self, events):
+    def next(self, transitions):
 
-        if events.bought():
+        if transitions.bought():
             return BotActive()
 
-        return BuyOrder()
+        return self
 
 
 class SellOrder(State):
 
-    def next(self, events):
+    def next(self, transitions):
 
-        if events.sold():
+        if transitions.sold():
             return BotActive()
 
-        return SellOrder()
+        return self
+
+
+if __name__ == "__main__":
+
+    _transition_stack = [("start", False),
+                         ("start", True),
+                         ("stop", False),
+                         ("stop", True),
+                         ("start", True),
+                         ("buy", True),
+                         ("turning_point", True),
+                         ("bought", True),
+                         ("stop", True)]
+
+    _state_machine = StateMachine()
+
+    for _m, _v in _transition_stack:
+
+        _transitions = Transitions()
+        _transitions.__dict__[_m].set(_v)
+        _state_machine.next(_transitions)
