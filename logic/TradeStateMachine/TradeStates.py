@@ -20,7 +20,7 @@ class Transition(object):
     def __init__(self):
         self._value = False
 
-    def __call__(self):
+    def get(self):
         return self._value
 
     def set(self, value):
@@ -30,13 +30,14 @@ class Transition(object):
 class Transitions(object):
 
     def __init__(self):
-        self.buy = Transition()
-        self.sell = Transition()
+        self.crossed_buy_limit1 = Transition()
+        self.corssed_sell_limit1 = Transition()
         self.turning_point = Transition()
         self.bought = Transition()
         self.sold = Transition()
         self.start = Transition()
         self.stop = Transition()
+        self.coins_to_sell = Transition()
 
 
 class StateMachine(object):
@@ -50,26 +51,26 @@ class StateMachine(object):
         self.current_state.execute()
 
 
-class BotActive(State):
+class Start(State):
 
     def next(self, transitions):
-        if transitions.sell():
+        if transitions.sell.get():
             return SellAlert()
 
-        if transitions.buy():
+        if transitions.buy.get():
             return BuyAlert()
 
-        if transitions.stop():
+        if transitions.stop.get():
             return BotIdle()
 
         return self
 
 
-class BotIdle(State):
+class Idle(State):
 
     def next(self, transitions):
 
-        if transitions.start():
+        if transitions.start.get():
             return BotActive()
 
         return self
@@ -79,10 +80,10 @@ class BuyAlert(State):
 
     def next(self, transitions):
 
-        if transitions.turning_point():
+        if transitions.turning_point.get():
             return BuyOrder()
 
-        if transitions.stop():
+        if transitions.stop.get():
             return BotIdle()
 
         return self
@@ -91,10 +92,10 @@ class BuyAlert(State):
 class SellAlert(State):
 
     def next(self, transitions):
-        if transitions.turning_point():
+        if transitions.turning_point.get():
             return SellOrder()
 
-        if transitions.stop():
+        if transitions.stop.get():
             return BotIdle()
 
         return self
@@ -104,7 +105,7 @@ class BuyOrder(State):
 
     def next(self, transitions):
 
-        if transitions.bought():
+        if transitions.bought.get():
             return BotActive()
 
         return self
@@ -114,11 +115,30 @@ class SellOrder(State):
 
     def next(self, transitions):
 
-        if transitions.sold():
+        if transitions.sold.get():
             return BotActive()
 
         return self
 
+
+class WaitForBuy(State):
+
+    def next(self, transitions):
+
+        if transitions.crossing_buy_limit.get():
+            return BuyAlert()
+
+        return self
+
+
+class WaitForSell(State):
+
+    def next(self, transitions):
+
+        if transitions.crossing_sell_limit.get():
+            return SellAlert()
+
+        return self
 
 if __name__ == "__main__":
 
