@@ -39,20 +39,6 @@ class NoState(State):
     pass
 
 
-class Start(State):
-
-    @classmethod
-    def next(cls, transitions):
-
-        if transitions.coins_to_sell.get():
-            return WaitForSell
-
-        else:
-            return WaitForBuy
-
-        return cls
-
-
 class Idle(State):
 
     @classmethod
@@ -64,16 +50,33 @@ class Idle(State):
         return cls
 
 
+class Start(State):
+
+    @classmethod
+    def next(cls, transitions):
+
+        if transitions.stop.get():
+            return Idle
+
+        if transitions.coins_to_sell.get():
+            return WaitForSell
+
+        else:
+            return WaitForBuy
+
+        return cls
+
+
 class BuyAlert(State):
 
     @classmethod
     def next(cls, transitions):
 
-        if transitions.turning_point.get():
-            return BuyOrder
-
         if transitions.stop.get():
             return Idle
+
+        if transitions.turning_point.get():
+            return BuyOrder
 
         return cls
 
@@ -82,11 +85,12 @@ class SellAlert(State):
 
     @classmethod
     def next(cls, transitions):
-        if transitions.turning_point.get():
-            return SellOrder
 
         if transitions.stop.get():
             return Idle
+
+        if transitions.turning_point.get():
+            return SellOrder
 
         return cls
 
@@ -95,6 +99,9 @@ class BuyOrder(State):
 
     @classmethod
     def next(cls, transitions):
+
+        if transitions.stop.get():
+            return Idle
 
         if transitions.bought.get():
             return WaitForSell
@@ -107,6 +114,9 @@ class SellOrder(State):
     @classmethod
     def next(cls, transitions):
 
+        if transitions.stop.get():
+            return Idle
+
         if transitions.sold.get():
             return WaitForBuy
 
@@ -118,6 +128,9 @@ class WaitForBuy(State):
     @classmethod
     def next(cls, transitions):
 
+        if transitions.stop.get():
+            return Idle
+
         if transitions.crossed_buy_limit.get():
             return BuyAlert
 
@@ -128,6 +141,9 @@ class WaitForSell(State):
 
     @classmethod
     def next(cls, transitions):
+
+        if transitions.stop.get():
+            return Idle
 
         if transitions.crossed_sell_limit.get():
             return SellAlert

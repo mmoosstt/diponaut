@@ -20,7 +20,11 @@ class crossed_buy_limit(Transition):
     pass
 
 
-class corssed_sell_limit(Transition):
+class crossed_sell_limit(Transition):
+    pass
+
+
+class turning_point(Transition):
     pass
 
 
