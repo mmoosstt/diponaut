@@ -1,4 +1,5 @@
 
+
 class State(object):
 
     @classmethod
@@ -42,14 +43,12 @@ class Start(State):
 
     @classmethod
     def next(cls, transitions):
-        if transitions.sell.get():
-            return SellAlert()
 
-        if transitions.buy.get():
-            return BuyAlert()
+        if transitions.coins_to_sell.get():
+            return WaitForSell
 
-        if transitions.stop.get():
-            return BotIdle()
+        else:
+            return WaitForBuy
 
         return cls
 
@@ -71,10 +70,10 @@ class BuyAlert(State):
     def next(cls, transitions):
 
         if transitions.turning_point.get():
-            return BuyOrder()
+            return BuyOrder
 
         if transitions.stop.get():
-            return Idle()
+            return Idle
 
         return cls
 
@@ -84,10 +83,10 @@ class SellAlert(State):
     @classmethod
     def next(cls, transitions):
         if transitions.turning_point.get():
-            return SellOrder()
+            return SellOrder
 
         if transitions.stop.get():
-            return Idle()
+            return Idle
 
         return cls
 
@@ -98,7 +97,7 @@ class BuyOrder(State):
     def next(cls, transitions):
 
         if transitions.bought.get():
-            return WaitForSell()
+            return WaitForSell
 
         return cls
 
@@ -109,7 +108,7 @@ class SellOrder(State):
     def next(cls, transitions):
 
         if transitions.sold.get():
-            return WaitForBuy()
+            return WaitForBuy
 
         return cls
 
@@ -119,8 +118,8 @@ class WaitForBuy(State):
     @classmethod
     def next(cls, transitions):
 
-        if transitions.crossing_buy_limit.get():
-            return BuyAlert()
+        if transitions.crossed_buy_limit.get():
+            return BuyAlert
 
         return cls
 
@@ -130,16 +129,7 @@ class WaitForSell(State):
     @classmethod
     def next(cls, transitions):
 
-        if transitions.crossing_sell_limit.get():
-            return SellAlert()
+        if transitions.crossed_sell_limit.get():
+            return SellAlert
 
         return cls
-
-
-if __name__ == "__main__":
-
-    import logic.TradeStateMachine.Transitions as transitions
-
-    for x in range(5):
-        StateMachine.next(transitions)
-    x = 1
