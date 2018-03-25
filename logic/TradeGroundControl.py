@@ -2,7 +2,7 @@ import logic.TradeApi
 import logic.TradeApiSim
 import logic.TradeLogger
 import logic.TradePrediction
-import logic.TradeStates
+#import logic.TradeStates
 from logic.TradeGlobals import GloVar
 import time
 import re
