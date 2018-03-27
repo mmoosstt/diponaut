@@ -22,6 +22,21 @@ if 0:
     Transitions.coins_to_sell
 
 
+class ApiAccount(object):
+
+    def __init__(self):
+        self.coin_target = None
+        self.coin_source = None
+        self.coin_target_cnt = 0
+        self.coin_source_cnt = 0
+
+    def _print(self):
+        _str = "ApiAccount\n"
+        for _key in sorted(self.__dict__.keys()):
+            _str += "{0} = {1}\n".format(_key, self.__dict__[_key])
+        print(_str)
+
+
 class ApiData(object):
 
     def __init__(self):
@@ -68,6 +83,7 @@ class Api(object):
                 file_path = "../{0}".format(file_path)
 
         self.binance_api = BinanceClient(file_path).binance_api
+        self.account = ApiAccount()
 
     def getTradeData(self, startTime, endTime):
 
@@ -110,30 +126,35 @@ class Api(object):
 
         return None
 
-    def create_buy_order(self):
+    def create_buy_order(self, quantity=None):
+
+        if quantity == None:
+            quantity = GloVar.get("trade_quantity")
 
         _ret = self.binance_api.create_order(
             symbol=GloVar.get("trade_symbol"),
             side=binance.client.Client.SIDE_BUY,
             type=binance.client.Client.ORDER_TYPE_MARKET,
-            quantity=GloVar.get("trade_quantity"))
+            quantity=quantity)
 
         return _ret
 
-    def create_sell_order(self):
+    def create_sell_order(self, quantity=None):
+
+        if quantity == None:
+            quantity = GloVar.get("trade_quantity")
 
         _ret = self.binance_api.create_order(
             symbol=GloVar.get("trade_symbol"),
             side=binance.client.Client.SIDE_SELL,
             type=binance.client.Client.ORDER_TYPE_MARKET,
-            quantity=GloVar.get("trade_quantity"))
+            quantity=quantity)
 
         return _ret
 
-    def account_limit(self):
+    def calculate_account_limit(self):
 
-        _cnt_buy = None
-        _cnt_sell = None
+        _accont = ApiAccount()
 
         _symbol = GloVar.get("trade_symbol")
         _asset_name1 = _symbol[:3]
@@ -144,6 +165,7 @@ class Api(object):
         _t_delta = int(GloVar.get("trade_sample_time") * 1000)
 
         _trade_data = self.getTradeData(_t_local - _t_delta, _t_local)
+        print(_trade_data)
         if _trade_data:
 
             # _price_asset1 =
@@ -159,11 +181,18 @@ class Api(object):
                 _value_sell = float(_asset1['free']) * _price
                 _value_buy = float(_asset2['free'])
 
-        return _cnt_buy, _cnt_sell
+            self.account.coin_target_cnt = _cnt_buy
+            self.account.coin_source_cnt = _cnt_sell
+            self.account.coin_target = _asset_name1
+            self.account.coin_source = _asset_name2
+
+        return self.account
 
 if __name__ == "__main__":
     #import time
 
+    _x = ApiAccount()
+    _x._print()
     api = Api("../config/config.xml")
 
     for x in range(10):

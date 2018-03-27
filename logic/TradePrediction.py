@@ -13,8 +13,8 @@ class PredictionData(object):
     def __init__(self):
 
         self.event_price = 0
-        self.event_buy = 0
-        self.event_sell = 0
+        self.event_buy = False
+        self.event_sell = False
         self.event_zc = False
         self.event_rising = False
         self.event_time = time.time()

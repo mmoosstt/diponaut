@@ -101,24 +101,6 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.plotWidgets["plot1"]["curves"]["value_filt2"]["x"] = self.GroundControl.prediction.trades_time
         self.plotWidgets["plot1"]["curves"]["value_filt2"]["y"] = self.GroundControl.prediction.trades_filt2
 
-        self.plotWidgets["plot1"]["curves"]["events_buy"] = {}
-        self.plotWidgets["plot1"]["curves"]["events_buy"]["widget"] = self.plotWidgets["plot1"]["widget"].plot(symbolSize=10, symbol=1)
-        self.plotWidgets["plot1"]["curves"]["events_buy"]["x"] = self.GroundControl.state.events_buy_time
-        self.plotWidgets["plot1"]["curves"]["events_buy"]["y"] = self.GroundControl.state.events_buy
-        self.plotWidgets["plot1"]["curves"]["events_buy"]["style"] = lambda w: mySetSymbol(w, 2)
-
-        self.plotWidgets["plot1"]["curves"]["events_sell"] = {}
-        self.plotWidgets["plot1"]["curves"]["events_sell"]["widget"] = self.plotWidgets["plot1"]["widget"].plot(symbolSize=10)
-        self.plotWidgets["plot1"]["curves"]["events_sell"]["x"] = self.GroundControl.state.events_sell_time
-        self.plotWidgets["plot1"]["curves"]["events_sell"]["y"] = self.GroundControl.state.events_sell
-        self.plotWidgets["plot1"]["curves"]["events_sell"]["style"] = lambda w: mySetSymbol(w, 3)
-
-        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"] = {}
-        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["widget"] = self.plotWidgets["plot1"]["widget"].plot(symbolSize=7)
-        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["x"] = self.GroundControl.state.events_zc_time
-        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["y"] = self.GroundControl.state.events_zc
-        self.plotWidgets["plot1"]["curves"]["events_zero_crossing"]["style"] = lambda w: mySetSymbol(w, 4)
-
         self.plotWidgets["plot2"] = {}
         self.plotWidgets["plot2"]["widget"] = pyqtgraph.PlotWidget(self, axisItems={'bottom': TimeAxisItem(orientation='bottom')})
         self.plotWidgets["plot2"]["curves"] = {}

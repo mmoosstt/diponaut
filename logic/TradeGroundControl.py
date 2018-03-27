@@ -2,12 +2,16 @@ import logic.TradeApi
 import logic.TradeApiSim
 import logic.TradeLogger
 import logic.TradePrediction
-#import logic.TradeStates
 from logic.TradeGlobals import GloVar
 import time
 import re
 import os
 import shutil
+
+
+from logic.TradeStateMachine.StateMachines import StateMachine
+import logic.TradeStateMachine.States as States
+import logic.TradeStateMachine.Transitions as Transitions
 
 
 class FileName(object):
@@ -213,10 +217,85 @@ class GroundControl(object):
 
         self.logger = logic.TradeLogger.Logger(self.files.file_path_logger)
         self.prediction = logic.TradePrediction.Prediction(self.files.file_path_prediction)
-        self.state = logic.TradeStates.States(self.files.file_path_states)
+        #self.state = logic.TradeStates.States(self.files.file_path_states)
 
         self.logger.init_trade_interface(self.api)
-        self.state.init_trade_interface(self.api)
+        # self.state.init_trade_interface(self.api)
+
+        States.Start.set_entry(self._state_start)
+        States.BuyAlert.set_entry(self._state_buy_alert)
+        States.SellAlert.set_entry(self._state_sell_alert)
+
+        Transitions.crossed_buy_limit.set_interface(self._trans_crossed_buy_limit)
+        Transitions.crossed_sell_limit.set_interface(self._trans_crossed_sell_limit)
+        Transitions.turning_point.set_interface(self._trans_zero_crossing)
+        Transitions.coins_to_sell.set_interface(self._trans_coins_to_sell)
+        Transitions.bought.set_interface(self._trans_bought)
+        Transitions.sold.set_interface(self._trans_sold)
+        Transitions.start.set_interface(self._trans_start)
+        Transitions.stop.set_interface(self._trans_stop)
+
+    def _state_start(self):
+        self.api.calculate_account_limit()
+        self.api.account._print()
+
+    def _state_buy_alert(self):
+        _quantity = GloVar.get("trade_quantity")
+        _final_quantity = min(max(0, _quantity - self.api.account.coin_target_cnt), _quantity)
+        # self.api.create_buy_order(_final_quantity)
+
+    def _state_sell_alert(self):
+        _quantity = GloVar.get("trade_quantity")
+        _final_quantity = max(self.api.account.coin_target_cnt, _quantity)
+        # self.api.create_sell_order(_final_quantity)
+
+    def _trans_start(self):
+        if GloVar.get("state").lower() == "started":
+            return True
+        else:
+            return False
+
+    def _trans_stop(self):
+        if GloVar.get("state").lower() == "stopped":
+            return True
+        else:
+            return False
+
+    def _trans_sold(self):
+        _old_coin_target_cnt = self.api.account.coin_target_cnt
+        self.api.calculate_account_limit()
+        self.api.account._print()
+        if _old_coin_target_cnt > self.api.account.coin_target_cnt:
+            return True
+        else:
+            return False
+
+    def _trans_bought(self):
+        _old_coin_target_cnt = self.api.account.coin_target_cnt
+        self.api.calculate_account_limit()
+        self.api.account._print()
+        if _old_coin_target_cnt < self.api.account.coin_target_cnt:
+            return True
+        else:
+            return False
+
+    def _trans_coins_to_sell(self):
+
+        _cnt = GloVar.get("trade_quantity")
+        # coins to sell
+        if self.api.account.coin_target_cnt >= _cnt:
+            return True
+        else:
+            return False
+
+    def _trans_crossed_buy_limit(self):
+        return self.prediction.prediction.event_buy
+
+    def _trans_crossed_sell_limit(self):
+        return self.prediction.prediction.event_sell
+
+    def _trans_zero_crossing(self):
+        return self.prediction.prediction.event_zc
 
     def update(self):
 
@@ -227,7 +306,8 @@ class GroundControl(object):
 
         self.logger.update()
         self.prediction.update(self.logger)
-        self.state.update(self.prediction.prediction)
+
+        StateMachine.next(Transitions)
 
         GloVar.set("actual_price", self.prediction.prediction.event_price)
         GloVar.set("actual_time", time.strftime("%H:%M:%S"))
@@ -239,7 +319,6 @@ class GroundControl(object):
         if self.simulation == False and self.changed == False:
             self.logger.save_storage()
             self.prediction.save_storage()
-            self.state.save_storage()
 
 
 if __name__ == "__main__":

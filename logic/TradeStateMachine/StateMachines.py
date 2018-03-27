@@ -1,4 +1,5 @@
 import logic.TradeStateMachine.States as States
+from logic.TradeGlobals import GloVar
 
 
 class StateMachine(object):
@@ -14,6 +15,8 @@ class StateMachine(object):
         if cls.current_state != cls.last_state:
             cls.last_state.exit()
             cls.current_state.entry()
+
+            GloVar.set("state", cls.current_state.__name__)
 
         # cls.current_state.execute()
 
