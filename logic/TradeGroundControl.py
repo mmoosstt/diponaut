@@ -281,9 +281,29 @@ class GroundControl(object):
 
     def _trans_coins_to_sell(self):
 
+        if self.api.account.coin_source == None:
+            print("get accaunt info failed")
+            return False
+
+        _cnt = GloVar.get("trade_quantity")
+        if self.api.account.coin_target_cnt < _cnt:
+            print("to less coins to sell")
+            return False
+
+        else:
+            return True
+
+    def _trans_coins_to_buy(self):
+
         _cnt = GloVar.get("trade_quantity")
         # coins to sell
-        if self.api.account.coin_target_cnt >= _cnt:
+
+        # api can not acces acount info
+        if self.api.account.coin_source == None:
+            print("get account info failed")
+            return False
+
+        if self.api.account.coin_source_cnt >= _cnt:
             return True
         else:
             return False

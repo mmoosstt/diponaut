@@ -152,7 +152,7 @@ class Api(object):
 
         return _ret
 
-    def calculate_account_limit(self):
+    def calculate_account_limit(self, count=1):
 
         _accont = ApiAccount()
 
@@ -164,9 +164,15 @@ class Api(object):
         _t_local = int(time.time() * 1000)
         _t_delta = int(GloVar.get("trade_sample_time") * 1000)
 
-        _trade_data = self.getTradeData(_t_local - _t_delta, _t_local)
-        print(_trade_data)
-        if _trade_data:
+        _trade_data = self.getTradeData(_t_local - 1000 * count, _t_local)
+
+        if not(_trade_data):
+            if count > 20:
+                return self.account
+            else:
+                return self.calculate_account_limit(count + 1)
+
+        else:
 
             # _price_asset1 =
             _price = _trade_data.value_mean_quantity
@@ -175,16 +181,18 @@ class Api(object):
             _asset2 = self.binance_api.get_asset_balance(asset=_asset_name2)
 
             if _asset1 and _asset2:
-                _cnt_sell = float(_asset1['free'])  # [1]
-                _cnt_buy = float(_asset2['free']) / _price
+                _cnt_target = float(_asset1['free'])  # [1]
+                _cnt_source = float(_asset2['free']) / _price
 
                 _value_sell = float(_asset1['free']) * _price
                 _value_buy = float(_asset2['free'])
 
-            self.account.coin_target_cnt = _cnt_buy
-            self.account.coin_source_cnt = _cnt_sell
+            print(_value_sell, _value_buy)
+
             self.account.coin_target = _asset_name1
+            self.account.coin_target_cnt = _cnt_target
             self.account.coin_source = _asset_name2
+            self.account.coin_source_cnt = _cnt_source
 
         return self.account
 
@@ -198,7 +206,9 @@ if __name__ == "__main__":
     for x in range(10):
         time.Timer.synchronise(api.binance_api)
 
-        api.account_limit()
+        _r = api.calculate_account_limit()
+
+        _r._print()
 
     #address = api.binance_api.get_asset_balance(asset='XVG')
     # print(address)
