@@ -1,3 +1,8 @@
 [submodule "binance"]
 	path = binance
 	url = https://github.com/sammchardy/python-binance.git
+
+[submodule "pyqtgraph"]
+	path = pyqtgraph
+	url = https://github.com/pyqtgraph/pyqtgraph.git
+	branch = develop
