@@ -1,4 +1,5 @@
-import PySide.QtGui
+import PySide2.QtGui
+import PySide2.QtWidgets
 import pyqtgraph
 import faulthandler
 faulthandler.enable()
@@ -29,16 +30,16 @@ class TimeAxisItem(pyqtgraph.AxisItem):
         return _t_str
 
 
-class TraidingWidget(PySide.QtGui.QWidget):
+class TraidingWidget(PySide2.QtWidgets.QWidget):
 
     color_cnt = 1
 
     def __init__(self, parent=None):
-        PySide.QtGui.QWidget.__init__(self, parent)
+        PySide2.QtWidgets.QWidget.__init__(self, parent)
         self.GroundControl = GroundControl()
         self.GroundControl.load_config()
 
-        self.layout = PySide.QtGui.QVBoxLayout(self)
+        self.layout = PySide2.QtWidgets.QVBoxLayout(self)
 
         self.createPlotInterface()
         self.setLayout(self.layout)
@@ -48,11 +49,11 @@ class TraidingWidget(PySide.QtGui.QWidget):
         self.cyclic_task_timer_plotting = GloVar.get("cyclic_task_plotting") + time.time()
         self.cyclic_task_timer_store = GloVar.get("cyclic_task_store") + time.time()
 
-        self.qtimer1 = PySide.QtCore.QTimer()
+        self.qtimer1 = PySide2.QtCore.QTimer()
         self.qtimer1.timeout.connect(self.CyclicTasks)
         self.qtimer1.start(1000 * GloVar.get("cyclic_task_main"))
 
-        self.qtimer3 = PySide.QtCore.QTimer()
+        self.qtimer3 = PySide2.QtCore.QTimer()
         self.qtimer3.setSingleShot(True)
         self.qtimer3.timeout.connect(self.timeout_sync_x_aches)
 
@@ -222,7 +223,7 @@ class TraidingWidget(PySide.QtGui.QWidget):
 # Start Qt event loop unless running in interactive mode.
 if __name__ == '__main__':
 
-    app = PySide.QtGui.QApplication([])
+    app = PySide2.QtWidgets.QApplication([])
     MainWidget = TraidingWidget()
     MainWidget.resize(800, 800)
     MainWidget.show()

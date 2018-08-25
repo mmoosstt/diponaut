@@ -1,16 +1,16 @@
-import PySide.QtGui
+import PySide2.QtGui
 import gui.LivePlotter
 import gui.GlobalVariables
 from logic.TradeGlobals import GloVar
 
 
-class Main(PySide.QtGui.QWidget):
+class Main(PySide2.QtGui.QWidget):
 
     def __init__(self, parent=None):
 
-        PySide.QtGui.QWidget.__init__(self, parent)
+        PySide2.QtGui.QWidget.__init__(self, parent)
 
-        self.layout = PySide.QtGui.QHBoxLayout(self)
+        self.layout = PySide2.QtGui.QHBoxLayout(self)
 
         self.layout.addWidget(gui.GlobalVariables.GlobalVariables(self), 1)
 

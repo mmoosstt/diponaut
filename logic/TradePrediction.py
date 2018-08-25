@@ -4,7 +4,7 @@ import os
 import scipy
 import scipy.signal
 import numpy
-import PySide.QtCore
+import PySide2.QtCore
 from logic.TradeGlobals import GloVar
 
 
@@ -20,11 +20,11 @@ class PredictionData(object):
         self.event_time = time.time()
 
 
-class Prediction(PySide.QtCore.QObject):
-    signal_prediction_data = PySide.QtCore.Signal(PredictionData)
+class Prediction(PySide2.QtCore.QObject):
+    signal_prediction_data = PySide2.QtCore.Signal(PredictionData)
 
     def __init__(self, file_path="./data"):
-        PySide.QtCore.QObject.__init__(self)
+        PySide2.QtCore.QObject.__init__(self)
 
         self.time_delta = GloVar.get("trade_sample_time")  # s
         self.ring_size = int(60 * 60 * 24 / self.time_delta)

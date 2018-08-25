@@ -1,5 +1,5 @@
 import threading
-import PySide.QtCore
+import PySide2.QtCore
 
 
 class IVariable(object):
@@ -13,14 +13,14 @@ class IVariable(object):
         self.protected = protected
 
 
-class IVariables(PySide.QtCore.QObject):
+class IVariables(PySide2.QtCore.QObject):
 
-    signal_set = PySide.QtCore.Signal(str, IVariable)
+    signal_set = PySide2.QtCore.Signal(str, IVariable)
     singelton = {}
     lock = threading.Lock()
 
     def __init__(self, parent=None):
-        PySide.QtCore.QObject.__init__(self, parent)
+        PySide2.QtCore.QObject.__init__(self, parent)
 
     def set(self, name, value):
 
