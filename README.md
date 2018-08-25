@@ -1,5 +1,5 @@
 ## Diponaut
-# Crypto Traiding Bot
+# Crypto Trading Bot
 
 - plotting
 - logging 10s samples on daily basis
@@ -19,3 +19,4 @@
 -#diponaut
 -#binance
 -#binance-api
+-#trading-bot
