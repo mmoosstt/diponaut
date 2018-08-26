@@ -1,16 +1,16 @@
 import PySide2
-import PySide2.QtGui
+import PySide2.QtWidgets
 import PySide2.QtCore
 import logic.TradeGlobals
 import utils.Interfaces
 
 
-class myLineEdit(PySide2.QtGui.QLineEdit):
+class myLineEdit(PySide2.QtWidgets.QLineEdit):
 
     valueChanged = PySide2.QtCore.Signal(str, utils.Interfaces.IVariable)
 
     def __init__(self, parent, name):
-        PySide2.QtGui.QLineEdit.__init__(self, parent)
+        PySide2.QtWidgets.QLineEdit.__init__(self, parent)
         self.name = name
 
         self.textChanged.connect(self.myTextChanged)
@@ -22,17 +22,17 @@ class myLineEdit(PySide2.QtGui.QLineEdit):
         self.textChanged.connect(self.myTextChanged)
 
 
-class GlobalVariables(PySide2.QtGui.QWidget):
+class GlobalVariables(PySide2.QtWidgets.QWidget):
 
     def __init__(self, parent=None):
-        PySide2.QtGui.QWidget.__init__(self, parent)
+        PySide2.QtWidgets.QWidget.__init__(self, parent)
 
         self.data_state = None
         self.data_prediction = None
         self.GloVar = logic.TradeGlobals.GloVar
         self.GloVar.signal_set.connect(self.SetGloValues)
 
-        layout = PySide2.QtGui.QGridLayout(self)
+        layout = PySide2.QtWidgets.QGridLayout(self)
 
         row = 0
         col = 0
@@ -44,7 +44,7 @@ class GlobalVariables(PySide2.QtGui.QWidget):
                 print(_obj.type, _name)
 
                 if _obj.protected == False:
-                    layout.addWidget(PySide2.QtGui.QLabel(_name, self), row, col)
+                    layout.addWidget(PySide2.QtWidgets.QLabel(_name, self), row, col)
                     self.__dict__["Q{0}".format(_name)] = myLineEdit(self, _name)
                     layout.addWidget(self.__dict__["Q{0}".format(_name)], row, col + 1)
                     self.__dict__["C{0}".format(_name)] = lambda name, value: self.GloVar.set(name, value)
@@ -62,7 +62,7 @@ class GlobalVariables(PySide2.QtGui.QWidget):
             _object = self.__dict__[_attrib_str]
             _callback = self.__dict__[_callback_str]
 
-            if isinstance(_object, PySide2.QtGui.QLineEdit):
+            if isinstance(_object, PySide2.QtWidgets.QLineEdit):
                 _object.valueChanged.disconnect(_callback)
                 _object.setText(str(instance.value))
                 _object.valueChanged.connect(_callback)
@@ -79,7 +79,7 @@ class GlobalVariables(PySide2.QtGui.QWidget):
 
 
 if __name__ == "__main__":
-    app = PySide2.QtGui.QApplication([])
+    app = PySide2.QtWidgets.QApplication([])
 
     MainWidget = TraidingInterface()
     MainWidget.resize(800, 800)

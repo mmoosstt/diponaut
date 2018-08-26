@@ -1,22 +1,25 @@
-import PySide2.QtGui
-import gui.LivePlotter
-import gui.GlobalVariables
+import PySide2.QtWidgets
+from gui import LivePlotter, GlobalVariables, TradingInterface
 from logic.TradeGlobals import GloVar
 
 
-class Main(PySide2.QtGui.QWidget):
+class Main(PySide2.QtWidgets.QWidget):
 
     def __init__(self, parent=None):
 
-        PySide2.QtGui.QWidget.__init__(self, parent)
+        PySide2.QtWidgets.QWidget.__init__(self, parent)
 
-        self.layout = PySide2.QtGui.QHBoxLayout(self)
+        hbox = PySide2.QtWidgets.QHBoxLayout()
+        vbox =  PySide2.QtWidgets.QVBoxLayout()
 
-        self.layout.addWidget(gui.GlobalVariables.GlobalVariables(self), 1)
 
-        _w = gui.LivePlotter.TraidingWidget(self)
-        self.layout.addWidget(_w, 4)
+        vbox.addWidget(TradingInterface.TraidingInterface(self))
+        vbox.addWidget(GlobalVariables.GlobalVariables(self))
 
-        self.setLayout(self.layout)
+        hbox.addLayout(vbox,1)
+        
+        hbox.addWidget(LivePlotter.TraidingWidget(self),4)
+
+        self.setLayout(hbox)
 
         GloVar.emit_all()

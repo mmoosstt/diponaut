@@ -63,6 +63,10 @@ GloVar.cyclic_task_main = utils.Interfaces.IVariable(value=10., type=float, prot
 GloVar.cyclic_task_plotting = utils.Interfaces.IVariable(value=30., type=float, protected=True)
 GloVar.cyclic_task_store = utils.Interfaces.IVariable(value=60., type=float, protected=True)
 
+GloVar.trade_source_name = utils.Interfaces.IVariable(value="XXX", type=str, protected=True)
+GloVar.trade_source_count = utils.Interfaces.IVariable(value=0, type=int, protected=True)
+GloVar.trade_target_name = utils.Interfaces.IVariable(value="XXX", type=str, protected=True)
+GloVar.trade_target_count = utils.Interfaces.IVariable(value=0, type=int, protected=True)
 
 def _loadArguments(args):
     """
