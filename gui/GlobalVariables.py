@@ -1,4 +1,3 @@
-import PySide2
 import PySide2.QtWidgets
 import PySide2.QtCore
 import logic.TradeGlobals
@@ -67,21 +66,11 @@ class GlobalVariables(PySide2.QtWidgets.QWidget):
                 _object.setText(str(instance.value))
                 _object.valueChanged.connect(_callback)
 
-    def SetDataStates(self, Data):
-
-        if isinstance(Data, DataApi.TradingStates):
-            self.data_state = Data
-
-    def SetDataPrediction(self, Data):
-
-        if isinstance(Data, DataApi.TradingPrediction):
-            self.dataPrediction = Data
-
 
 if __name__ == "__main__":
     app = PySide2.QtWidgets.QApplication([])
 
-    MainWidget = TraidingInterface()
+    MainWidget = GlobalVariables()
     MainWidget.resize(800, 800)
     MainWidget.show()
     app.exec_()

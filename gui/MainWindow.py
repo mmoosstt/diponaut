@@ -1,6 +1,7 @@
 import PySide2.QtWidgets
 from gui import LivePlotter, GlobalVariables, TradingInterface
 from logic.TradeGlobals import GloVar
+from gui.TradingInterface import TraidingInterface
 
 
 class Main(PySide2.QtWidgets.QWidget):
@@ -12,14 +13,17 @@ class Main(PySide2.QtWidgets.QWidget):
         hbox = PySide2.QtWidgets.QHBoxLayout()
         vbox =  PySide2.QtWidgets.QVBoxLayout()
 
-
-        vbox.addWidget(TradingInterface.TraidingInterface(self))
+        self.traiding_interface = TradingInterface.TraidingInterface(self)
+        vbox.addWidget(self.traiding_interface)
         vbox.addWidget(GlobalVariables.GlobalVariables(self))
 
         hbox.addLayout(vbox,1)
         
-        hbox.addWidget(LivePlotter.TraidingWidget(self),4)
+        self.plotter_interface = LivePlotter.TraidingWidget(self)
+        hbox.addWidget(self.plotter_interface,4)
 
+        self.traiding_interface.button_data_reset.clicked.connect(self.plotter_interface.GroundControl.logger.reset)
+        
         self.setLayout(hbox)
 
         GloVar.emit_all()

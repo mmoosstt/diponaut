@@ -44,7 +44,9 @@ class TraidingInterface(PySide2.QtWidgets.QWidget):
         self.button_data_reset = PySide2.QtWidgets.QPushButton(self)
         self.button_data_reset.setText("Reset Data")
         
-      
+        self.button_start.clicked.connect(lambda: GloVar.set('state', 'started'))
+        self.button_stop.clicked.connect(lambda: GloVar.set('state', 'stopped'))
+        
         hbox.addWidget(self.button_start)
         hbox.addWidget(self.button_stop)
         hbox.addWidget(self.button_data_reset)
@@ -63,6 +65,7 @@ class TraidingInterface(PySide2.QtWidgets.QWidget):
         vbox.addWidget(self.label_trade_source_count)
         vbox.addWidget(self.label_trade_target_name)
         vbox.addWidget(self.label_trade_target_count)
+        vbox.addSpacerItem(PySide2.QtWidgets.QSpacerItem(100,100,PySide2.QtWidgets.QSizePolicy.MinimumExpanding, PySide2.QtWidgets.QSizePolicy.MinimumExpanding))
         
         self.setLayout(vbox)
     

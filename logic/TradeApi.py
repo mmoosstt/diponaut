@@ -194,6 +194,13 @@ class Api(object):
             self.account.coin_source = _asset_name2
             self.account.coin_source_cnt = _cnt_source
 
+        
+        GloVar.set('trade_source_name', self.account.coin_source)
+        GloVar.set('trade_source_count', self.account.coin_source_cnt)
+        
+        GloVar.set('trade_target_name', self.account.coin_target)
+        GloVar.set('trade_target_count', self.account.coin_target_cnt)
+        
         return self.account
 
 if __name__ == "__main__":

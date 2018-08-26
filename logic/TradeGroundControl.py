@@ -237,6 +237,7 @@ class GroundControl(object):
 
     def _state_start(self):
         self.api.calculate_account_limit()
+      
         self.api.account._print()
 
     def _state_buy_alert(self):
