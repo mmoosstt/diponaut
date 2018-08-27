@@ -1,5 +1,5 @@
 ## Diponaut
-# Crypto Traiding Bot
+# Crypto Trading Bot
 # branch:TradeStateMachine
 
 - plotting
@@ -20,7 +20,7 @@
 
 # Screenshot
 
-![screenshot](https://raw.githubusercontent.com/mmoosstt/diponaut/master/config/screenshot.png)
+![screenshot](https://raw.githubusercontent.com/mmoosstt/diponaut/TradeStateMachine/config/screenshot.png)
 
 -#crypto
 -#bot
