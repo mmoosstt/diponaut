@@ -187,7 +187,7 @@ class Api(object):
                 _value_sell = float(_asset1['free']) * _price
                 _value_buy = float(_asset2['free'])
 
-            print(_value_sell, _value_buy)
+                print(_value_sell, _value_buy)
 
             self.account.coin_target = _asset_name1
             self.account.coin_target_cnt = _cnt_target
